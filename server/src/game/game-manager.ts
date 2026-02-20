@@ -106,13 +106,13 @@ export async function processAction(
 
   // Most actions require it to be your turn
   // DeclareBankruptcy can be done by the current player at any time
+  // Actions restricted to the active player's turn
+  // AuctionBid/AuctionPass are NOT included because all players participate in auctions
   const turnActions = [
     'RollDice',
     'RollForDoubles',
     'BuyProperty',
     'DeclineProperty',
-    'AuctionBid',
-    'AuctionPass',
     'EndTurn',
     'PayJailFine',
     'UseJailCard',
@@ -471,18 +471,18 @@ function applyAction(
       state.pendingBuyDecision = null;
       // Start auction if auctions enabled
       if (state.settings.auctionEnabled) {
-        state = startAuction(state, action.propertyId);
+        startAuction(state, action.propertyId);
       }
       return state;
     }
 
     case 'AuctionBid': {
       machine.transition(action);
-      const auction = getAuction(state.gameId);
+      const auction = getAuction(state);
       if (!auction) throw new Error('No active auction');
-      placeBid(state.gameId, playerId, action.amount);
+      placeBid(state, playerId, action.amount);
 
-      if (isAuctionComplete(state.gameId, state.players.length)) {
+      if (isAuctionComplete(state)) {
         state = resolveAuction(state);
         machine.transition(action, { auctionComplete: true });
       }
@@ -491,9 +491,9 @@ function applyAction(
 
     case 'AuctionPass': {
       machine.transition(action);
-      passBid(state.gameId, playerId);
+      passBid(state, playerId);
 
-      if (isAuctionComplete(state.gameId, state.players.length)) {
+      if (isAuctionComplete(state)) {
         state = resolveAuction(state);
         machine.transition(action, { auctionComplete: true });
       }
