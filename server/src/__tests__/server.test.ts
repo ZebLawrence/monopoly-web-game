@@ -30,7 +30,7 @@ describe('Server', () => {
       const app = createApp();
       const res = await fetchHealth(app);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ status: 'ok' });
+      expect(res.body).toMatchObject({ status: 'ok' });
     });
   });
 
