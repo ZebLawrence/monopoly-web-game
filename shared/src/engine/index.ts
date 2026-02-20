@@ -60,3 +60,27 @@ export {
   type DrawCardResult,
   type CardEffectResult,
 } from './cards';
+
+// Step 1A.6 — Property Management
+export {
+  buyProperty,
+  startAuction,
+  getAuction,
+  placeBid,
+  passBid,
+  isAuctionComplete,
+  resolveAuction,
+  hasMonopoly,
+  buildHouse,
+  canBuildHouse,
+  sellBuilding,
+  canSellBuilding,
+  mortgageProperty,
+  unmortgageProperty,
+  getBuildingSupply,
+  setBuildingSupply,
+  resetBuildingSupply,
+  initBuildingSupply,
+  type AuctionState,
+  type BuildingSupply,
+} from './properties';
