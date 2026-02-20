@@ -227,7 +227,8 @@ function handlePostRollResolution(
       spaceName: resolution.space.name,
       deckName: resolution.deckName,
     };
-    state.pendingBuyDecision = null;
+    // Don't clear pendingBuyDecision — card effects may have set it
+    // (e.g., "Advance to nearest Railroad" when unowned)
   } else {
     state.lastResolution = {
       type: resolution.type,
@@ -399,52 +400,15 @@ function applyAction(
           };
         }
 
-        const moveResult = applyMovement(state, player.id, diceResult);
-        state = moveResult.state;
+        // Resolve the space they moved to (rollInJail already moved them)
+        state = handlePostRollResolution(state, player.id, diceResult, machine, action);
+        // Preserve dice result
         state.lastDiceResult = {
           die1: diceResult.die1,
           die2: diceResult.die2,
           total: diceResult.total,
           isDoubles: diceResult.isDoubles,
         };
-
-        const currentPlayer = getActivePlayer(state);
-        const resolution = resolveSpace(state, currentPlayer.id, diceResult);
-        state = applySpaceResolution(state, currentPlayer.id, resolution);
-        state.lastDiceResult = {
-          die1: diceResult.die1,
-          die2: diceResult.die2,
-          total: diceResult.total,
-          isDoubles: diceResult.isDoubles,
-        };
-
-        // Handle card drawing
-        if (resolution.type === 'drawCard' && resolution.deckName) {
-          const drawResult = drawCard(state, resolution.deckName);
-          state = drawResult.state;
-          state.lastCardDrawn = drawResult.card;
-          const effectResult = applyCardEffect(
-            state,
-            currentPlayer.id,
-            drawResult.card,
-            diceResult,
-          );
-          state = effectResult.state;
-        }
-
-        // Set resolution info
-        if (resolution.type === 'unownedProperty' && resolution.propertyDetails) {
-          state.pendingBuyDecision = {
-            spaceId: resolution.propertyDetails.spaceId,
-            spaceName: resolution.propertyDetails.name,
-            cost: resolution.propertyDetails.cost,
-          };
-        }
-
-        machine.transition(action, {});
-        machine.transition(action, {
-          landedOnUnownedProperty: resolution.type === 'unownedProperty',
-        });
       } else {
         state.lastResolution = {
           type: 'stayInJail',
