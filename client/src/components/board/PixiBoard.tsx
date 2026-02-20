@@ -227,6 +227,36 @@ export function PixiBoard({
     for (const [position, playersAtPos] of playersByPosition) {
       if (position >= positions.length) continue;
       const pos = positions[position];
+
+      // Position 10 (Jail): split jailed vs visiting tokens
+      if (position === 10) {
+        const jailed = playersAtPos.filter((p) => p.jailStatus?.inJail);
+        const visiting = playersAtPos.filter((p) => !p.jailStatus?.inJail);
+
+        // Jailed tokens in upper-right quadrant (jail cell)
+        for (let i = 0; i < jailed.length; i++) {
+          const cellCx = pos.x + pos.width * 0.7;
+          const cellCy = pos.y + pos.height * 0.3;
+          const offsetRadius = Math.min(pos.width, pos.height) * 0.12;
+          const angle = (i / Math.max(jailed.length, 1)) * Math.PI * 2 - Math.PI / 2;
+          const tx = jailed.length <= 1 ? cellCx : cellCx + Math.cos(angle) * offsetRadius;
+          const ty = jailed.length <= 1 ? cellCy : cellCy + Math.sin(angle) * offsetRadius;
+          drawToken(ctx, jailed[i], tx, ty, boardSize);
+        }
+
+        // Visiting tokens in lower-left area (Just Visiting strip)
+        for (let i = 0; i < visiting.length; i++) {
+          const visitCx = pos.x + pos.width * 0.3;
+          const visitCy = pos.y + pos.height * 0.75;
+          const offsetRadius = Math.min(pos.width, pos.height) * 0.12;
+          const angle = (i / Math.max(visiting.length, 1)) * Math.PI * 2 - Math.PI / 2;
+          const tx = visiting.length <= 1 ? visitCx : visitCx + Math.cos(angle) * offsetRadius;
+          const ty = visiting.length <= 1 ? visitCy : visitCy + Math.sin(angle) * offsetRadius;
+          drawToken(ctx, visiting[i], tx, ty, boardSize);
+        }
+        continue;
+      }
+
       for (let i = 0; i < playersAtPos.length; i++) {
         const player = playersAtPos[i];
         const center = getTokenCenter(pos, i, playersAtPos.length);
