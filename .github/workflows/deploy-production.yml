@@ -1,0 +1,74 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy" to confirm production deployment'
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        if: github.event.inputs.confirm != 'deploy'
+        run: |
+          echo "Deployment not confirmed. Please type 'deploy' to confirm."
+          exit 1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Build all packages
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_SERVER_URL: ${{ vars.PRODUCTION_SERVER_URL }}
+
+      - name: Deploy server
+        run: |
+          echo "Deploying server to production"
+          # Deployment commands for production server
+          # Example: flyctl deploy --config server/fly.toml --remote-only
+
+      - name: Deploy client
+        run: |
+          echo "Deploying client to production"
+          # Deployment commands for production client
+          # Example: vercel deploy --prod --token $VERCEL_TOKEN
+
+      - name: Verify deployment
+        run: |
+          echo "Production deployment verification"
+          # curl -f ${{ vars.PRODUCTION_SERVER_URL }}/health || exit 1
+
+      - name: Notify success
+        if: success()
+        run: echo "Production deployment successful!"

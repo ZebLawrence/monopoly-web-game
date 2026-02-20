@@ -1,0 +1,55 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_SERVER_URL: ${{ vars.STAGING_SERVER_URL }}
+
+      - name: Deploy server
+        run: |
+          echo "Deploy server to staging environment"
+          echo "Server URL: ${{ vars.STAGING_SERVER_URL }}"
+          # Deployment commands would go here (e.g., Docker push, fly deploy, etc.)
+          # Example: flyctl deploy --config server/fly.toml --remote-only
+
+      - name: Deploy client
+        run: |
+          echo "Deploy client to staging environment"
+          echo "Client URL: ${{ vars.STAGING_CLIENT_URL }}"
+          # Deployment commands would go here (e.g., Vercel deploy, etc.)
+          # Example: vercel deploy --prod --token $VERCEL_TOKEN
+
+      - name: Verify deployment
+        run: |
+          echo "Staging deployment verification"
+          # curl -f ${{ vars.STAGING_SERVER_URL }}/health || exit 1
