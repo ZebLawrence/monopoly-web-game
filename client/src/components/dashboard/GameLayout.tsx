@@ -42,6 +42,7 @@ export function GameLayout({
   const lastTouchDistRef = useRef(0);
   const isDraggingRef = useRef(false);
   const lastTouchRef = useRef({ x: 0, y: 0 });
+  const lastTapTimeRef = useRef(0);
 
   const handleDrawerToggle = useCallback(() => {
     setDrawerOpen((prev) => !prev);
@@ -49,6 +50,8 @@ export function GameLayout({
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Prevent browser zoom when pinching on the board
+      e.preventDefault();
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       lastTouchDistRef.current = Math.sqrt(dx * dx + dy * dy);
@@ -61,7 +64,8 @@ export function GameLayout({
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (e.touches.length === 2) {
-        // Pinch-to-zoom
+        // Pinch-to-zoom on board only
+        e.preventDefault();
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -71,7 +75,8 @@ export function GameLayout({
         }
         lastTouchDistRef.current = dist;
       } else if (e.touches.length === 1 && isDraggingRef.current && scale > 1) {
-        // Pan when zoomed
+        // Pan when zoomed in
+        e.preventDefault();
         const dx = e.touches[0].clientX - lastTouchRef.current.x;
         const dy = e.touches[0].clientY - lastTouchRef.current.y;
         setTranslate((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
@@ -82,6 +87,13 @@ export function GameLayout({
   );
 
   const handleTouchEnd = useCallback(() => {
+    // Double-tap detection to reset zoom
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 300) {
+      setScale(1);
+      setTranslate({ x: 0, y: 0 });
+    }
+    lastTapTimeRef.current = now;
     lastTouchDistRef.current = 0;
     isDraggingRef.current = false;
   }, []);

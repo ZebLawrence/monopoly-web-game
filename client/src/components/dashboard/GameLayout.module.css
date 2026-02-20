@@ -13,6 +13,8 @@
   justify-content: center;
   padding: var(--space-4);
   position: relative;
+  touch-action: none;
+  overflow: hidden;
 }
 
 .dashboardSection {
@@ -190,5 +192,88 @@
   .gameLayout [role="button"] {
     min-height: 44px;
     min-width: 44px;
+  }
+}
+
+/* Small phones (320px) */
+@media (max-width: 359px) {
+  .boardSection {
+    padding: var(--space-1);
+  }
+
+  .dashboardSectionVisible {
+    height: 70vh;
+  }
+
+  .mobileTab {
+    font-size: var(--text-xs);
+    padding: var(--space-2);
+  }
+
+  .mobileTabContent {
+    padding: var(--space-2);
+  }
+
+  .toggleButton {
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-3);
+  }
+}
+
+/* Large desktop (1440px+) */
+@media (min-width: 1440px) {
+  .boardSection {
+    flex: 0 0 60%;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .dashboardSection {
+    flex: 0 0 40%;
+    max-width: 600px;
+  }
+
+  .gameLayout {
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+  .gameLayout {
+    flex-direction: row;
+  }
+
+  .boardSection {
+    flex: 0 0 60%;
+    height: 100vh;
+    padding: var(--space-1);
+  }
+
+  .dashboardSection {
+    display: flex;
+    flex: 0 0 40%;
+    flex-direction: column;
+    border-left: 1px solid var(--color-border);
+    border-top: none;
+    overflow-y: auto;
+    height: 100vh;
+  }
+
+  .dashboardSectionVisible {
+    position: relative;
+    height: 100vh;
+    border-radius: 0;
+    animation: none;
+    box-shadow: none;
+  }
+
+  .mobileToggle {
+    display: none;
+  }
+
+  .drawerHandle {
+    display: none;
   }
 }

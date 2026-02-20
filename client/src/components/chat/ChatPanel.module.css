@@ -194,6 +194,18 @@
     border: none;
     border-radius: 0;
   }
+
+  .inputRow {
+    position: sticky;
+    bottom: 0;
+    background-color: var(--color-surface);
+    z-index: 1;
+  }
+
+  .sendButton {
+    min-width: 48px;
+    min-height: 44px;
+  }
 }
 
 @keyframes fadeIn {

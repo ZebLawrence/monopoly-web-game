@@ -98,6 +98,16 @@ export function ChatPanel({
     [handleSend],
   );
 
+  // Handle virtual keyboard — scroll input into view on focus
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handleInputFocus = useCallback(() => {
+    // On mobile, the virtual keyboard pushes content up.
+    // Scroll the input into view after a short delay for keyboard animation.
+    setTimeout(() => {
+      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 300);
+  }, []);
+
   const chatContent = (
     <div className={styles.container} data-testid="chat-panel">
       <div className={styles.header}>
@@ -135,13 +145,16 @@ export function ChatPanel({
 
       <div className={styles.inputRow}>
         <input
+          ref={inputRef}
           className={styles.input}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={handleInputFocus}
           placeholder="Type a message..."
           maxLength={500}
+          enterKeyHint="send"
           data-testid="chat-input"
           aria-label="Chat message"
         />

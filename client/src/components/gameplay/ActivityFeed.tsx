@@ -125,7 +125,7 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
         tabIndex={0}
       >
         {events.length === 0 && <div className={styles.empty}>No events yet</div>}
-        {events.map((event) => (
+        {events.slice(-100).map((event) => (
           <div key={event.id} className={styles.event} data-testid="activity-feed-event">
             <span className={styles.eventIcon} aria-hidden="true">
               {EVENT_ICONS[event.type] ?? '\u26AA'}

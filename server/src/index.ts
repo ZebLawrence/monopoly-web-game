@@ -39,6 +39,10 @@ export function createSocketServer(app: ReturnType<typeof express>, redis: Redis
       },
       pingInterval: 25000,
       pingTimeout: 20000,
+      // Enable per-message compression to reduce bandwidth
+      perMessageDeflate: {
+        threshold: 1024, // Only compress messages > 1KB
+      },
     },
   );
 

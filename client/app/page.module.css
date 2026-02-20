@@ -73,3 +73,42 @@
 .joinButton:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
+/* Small phones */
+@media (max-width: 359px) {
+  .title {
+    font-size: var(--text-2xl);
+    letter-spacing: 2px;
+  }
+
+  .subtitle {
+    font-size: var(--text-base);
+    margin-bottom: var(--space-8);
+  }
+
+  .button {
+    min-width: 140px;
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-base);
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .buttonGroup {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .button {
+    width: 100%;
+    min-height: 48px;
+  }
+}

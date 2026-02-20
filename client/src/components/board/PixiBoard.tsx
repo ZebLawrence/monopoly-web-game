@@ -93,58 +93,83 @@ export function PixiBoard({
     }
   }, [players]);
 
-  const handleCanvasClick = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!onSpaceClick) return;
+  // Find space at given canvas coordinates
+  const findSpaceAt = useCallback(
+    (clientX: number, clientY: number): number | null => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas) return null;
 
       const rect = canvas.getBoundingClientRect();
       const scaleX = boardSize / rect.width;
       const scaleY = boardSize / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
+      const x = (clientX - rect.left) * scaleX;
+      const y = (clientY - rect.top) * scaleY;
 
       for (let i = 0; i < positionsRef.current.length; i++) {
         const pos = positionsRef.current[i];
         if (x >= pos.x && x <= pos.x + pos.width && y >= pos.y && y <= pos.y + pos.height) {
-          onSpaceClick(i);
-          return;
+          return i;
         }
       }
+      return null;
     },
-    [onSpaceClick, boardSize],
+    [boardSize],
+  );
+
+  const handleCanvasClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!onSpaceClick) return;
+      const spaceId = findSpaceAt(e.clientX, e.clientY);
+      if (spaceId !== null) onSpaceClick(spaceId);
+    },
+    [onSpaceClick, findSpaceAt],
+  );
+
+  // Mobile tap handler — uses touchend to detect taps (not drags)
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleCanvasTouchStart = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1) {
+      touchStartPosRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    }
+  }, []);
+
+  const handleCanvasTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      if (!onSpaceClick || !touchStartPosRef.current) return;
+      if (e.changedTouches.length !== 1) return;
+
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartPosRef.current.x;
+      const dy = touch.clientY - touchStartPosRef.current.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Only treat as tap if finger didn't move much (not a drag/pan)
+      if (dist < 10) {
+        const spaceId = findSpaceAt(touch.clientX, touch.clientY);
+        if (spaceId !== null) onSpaceClick(spaceId);
+      }
+      touchStartPosRef.current = null;
+    },
+    [onSpaceClick, findSpaceAt],
   );
 
   const handleCanvasMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = boardSize / rect.width;
-      const scaleY = boardSize / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-
-      let found = -1;
-      for (let i = 0; i < positionsRef.current.length; i++) {
-        const pos = positionsRef.current[i];
-        if (x >= pos.x && x <= pos.x + pos.width && y >= pos.y && y <= pos.y + pos.height) {
-          found = i;
-          break;
-        }
-      }
-      setHoveredSpace(found >= 0 ? found : null);
+      const spaceId = findSpaceAt(e.clientX, e.clientY);
+      setHoveredSpace(spaceId);
     },
-    [boardSize],
+    [findSpaceAt],
   );
 
   const handleCanvasMouseLeave = useCallback(() => {
     setHoveredSpace(null);
   }, []);
 
-  // Main render
+  // Main render — only re-render when data actually changes
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -152,8 +177,15 @@ export function PixiBoard({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = boardSize;
-    canvas.height = boardSize;
+    // Determine device pixel ratio for crisp rendering on high-DPI screens
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = boardSize * dpr;
+    canvas.height = boardSize * dpr;
+    canvas.style.width = `${boardSize}px`;
+    canvas.style.height = `${boardSize}px`;
+    if (typeof ctx.scale === 'function') {
+      ctx.scale(dpr, dpr);
+    }
 
     const positions = calculateSpacePositions(boardSize);
     positionsRef.current = positions;
@@ -250,6 +282,8 @@ export function PixiBoard({
         ref={canvasRef}
         className={styles.canvas}
         onClick={handleCanvasClick}
+        onTouchStart={handleCanvasTouchStart}
+        onTouchEnd={handleCanvasTouchEnd}
         onMouseMove={handleCanvasMouseMove}
         onMouseLeave={handleCanvasMouseLeave}
         data-testid="board-canvas"

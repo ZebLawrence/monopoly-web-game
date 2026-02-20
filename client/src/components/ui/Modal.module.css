@@ -58,3 +58,33 @@
 .body {
   padding: var(--space-4) var(--space-6);
 }
+
+@media (max-width: 359px) {
+  .modal {
+    max-width: calc(100vw - var(--space-4));
+    max-height: 85vh;
+  }
+
+  .header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .body {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .title {
+    font-size: var(--text-lg);
+  }
+}
+
+@media (max-width: 767px) {
+  .modal {
+    max-width: calc(100vw - var(--space-8));
+  }
+
+  .closeButton {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

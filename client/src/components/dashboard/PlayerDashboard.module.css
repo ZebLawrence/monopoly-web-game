@@ -163,6 +163,25 @@
   min-width: 100px;
 }
 
+@media (max-width: 767px) {
+  .actionBar {
+    gap: var(--space-3);
+  }
+
+  .actionButton {
+    min-height: 48px;
+    min-width: 44px;
+    font-size: var(--text-base);
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .propertyChip {
+    min-height: 36px;
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-sm);
+  }
+}
+
 /* Turn Indicator */
 .turnIndicator {
   display: flex;
@@ -200,4 +219,50 @@
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
+}
+
+/* Small phones (320px) */
+@media (max-width: 359px) {
+  .dashboard {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .currentPlayer {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .tokenIcon {
+    font-size: 1.5rem;
+  }
+
+  .playerName {
+    font-size: var(--text-base);
+  }
+
+  .sectionTitle {
+    font-size: var(--text-sm);
+  }
+
+  .otherPlayerInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+}
+
+/* Tablet (768-1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dashboard {
+    max-height: 45vh;
+  }
+
+  .actionBar {
+    position: sticky;
+    bottom: 0;
+    background-color: var(--color-surface);
+    padding: var(--space-2) 0;
+    z-index: 1;
+  }
 }
