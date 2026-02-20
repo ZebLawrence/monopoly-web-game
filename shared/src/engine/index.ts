@@ -30,3 +30,23 @@ export {
   type RngFunction,
   type MovementResult,
 } from './dice';
+
+// Step 1A.4 — Space Resolution Engine
+export {
+  resolveSpace,
+  applySpaceResolution,
+  calculateStreetRent,
+  calculateRailroadRent,
+  calculateUtilityRent,
+  getPropertyOwnership,
+  getPropertyState,
+  setPropertyState,
+  resetPropertyStates,
+  getColorGroupSpaces,
+  ownsAllInColorGroup,
+  countOwnedOfType,
+  type SpaceResolution,
+  type SpaceResolutionType,
+  type PropertyOwnership,
+  type PropertyStateEntry,
+} from './spaces';
