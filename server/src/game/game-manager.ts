@@ -281,7 +281,7 @@ function applyAction(
           isDoubles: diceResult.isDoubles,
         };
 
-        if (!jailResult.freed) {
+        if (!jailResult.freedFromJail) {
           state.lastResolution = {
             type: 'stayInJail',
             spaceName: 'Jail',
@@ -383,7 +383,7 @@ function applyAction(
         isDoubles: diceResult.isDoubles,
       };
 
-      if (jailResult.freed) {
+      if (jailResult.freedFromJail) {
         machine.rolledDoubles = diceResult.isDoubles;
 
         if (jailResult.forcedExit) {
@@ -508,7 +508,7 @@ function applyAction(
 
     case 'SellBuilding': {
       machine.transition(action);
-      return sellBuilding(state, playerId, action.propertyId, action.count);
+      return sellBuilding(state, playerId, action.propertyId);
     }
 
     case 'MortgageProperty': {
@@ -528,17 +528,15 @@ function applyAction(
     }
 
     case 'AcceptTrade': {
-      const trade = acceptTrade(state, action.tradeId, playerId);
-      return trade.state;
+      return acceptTrade(state, action.tradeId);
     }
 
     case 'RejectTrade': {
-      const trade = rejectTrade(state, action.tradeId, playerId);
-      return trade.state;
+      return rejectTrade(state, action.tradeId);
     }
 
     case 'CounterTrade': {
-      const trade = counterTrade(state, action.tradeId, playerId, action.offer);
+      const trade = counterTrade(state, action.tradeId, action.offer);
       return trade.state;
     }
 
@@ -637,7 +635,7 @@ export function autoRollForPlayer(state: GameState): GameState {
     if (player.jailStatus.inJail) {
       const jailResult = rollInJail(state, player.id, diceResult);
       state = jailResult.state;
-      if (!jailResult.freed) {
+      if (!jailResult.freedFromJail) {
         machine.transition({ type: 'RollDice' }, {});
         machine.transition({ type: 'RollDice' }, {});
         state.turnState = machine.currentState;

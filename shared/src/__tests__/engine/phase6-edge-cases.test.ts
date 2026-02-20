@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   rollDice,
   calculateNewPosition,
@@ -423,7 +423,7 @@ describe('P6.S1.T3 — Card Effects Coverage', () => {
 
   it('applyCardEffect for unknown type returns state unchanged', () => {
     const state = make2State();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const card: Card = {
       id: 'test',
       deck: 'chance',

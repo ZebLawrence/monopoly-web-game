@@ -44,7 +44,7 @@ async function setupRoom(
     TokenType.TopHat,
     TokenType.Boot,
     TokenType.Thimble,
-    TokenType.Dog,
+    TokenType.ScottieDog,
     TokenType.Iron,
   ];
 
@@ -250,7 +250,7 @@ describe('P6.S2.T3 — Redis state persistence', () => {
 
     // Modify state to have some game progress
     const modifiedState = { ...state };
-    modifiedState.players = state.players.map((p, i) => ({
+    modifiedState.players = state.players.map((p: any, i: number) => ({
       ...p,
       position: i * 5,
       cash: 1500 - i * 100,
@@ -345,7 +345,7 @@ describe('P6.S2.T4 — Reconnection flow', () => {
     // Verify room marks player as disconnected
     await vi.advanceTimersByTimeAsync(10);
     const roomAfterDisconnect = await redis.loadRoomMetadata(room.roomCode);
-    const disconnectedPlayer = roomAfterDisconnect?.players.find((p) => p.id === 'player-1');
+    const disconnectedPlayer = roomAfterDisconnect?.players.find((p: any) => p.id === 'player-1');
     expect(disconnectedPlayer?.isConnected).toBe(false);
 
     // Player reconnects
@@ -356,7 +356,7 @@ describe('P6.S2.T4 — Reconnection flow', () => {
     // Mark player as reconnected in room
     await markPlayerReconnected(redis, room.roomCode, 'player-1');
     const roomAfterReconnect = await redis.loadRoomMetadata(room.roomCode);
-    const reconnectedPlayer = roomAfterReconnect?.players.find((p) => p.id === 'player-1');
+    const reconnectedPlayer = roomAfterReconnect?.players.find((p: any) => p.id === 'player-1');
     expect(reconnectedPlayer?.isConnected).toBe(true);
 
     // Player can still access game state
@@ -501,7 +501,9 @@ describe('P6.S2.T6 — Full auction flow with 4 players', () => {
 
     // Manually set player 0 on an unowned property position (e.g., Mediterranean Ave = space 1)
     const modState = { ...state };
-    modState.players = state.players.map((p, i) => (i === 0 ? { ...p, position: 1 } : { ...p }));
+    modState.players = state.players.map((p: any, i: number) =>
+      i === 0 ? { ...p, position: 1 } : { ...p },
+    );
     modState.pendingBuyDecision = { spaceId: 1, spaceName: 'Mediterranean Avenue', cost: 60 };
     modState.turnState = TurnState.AwaitingBuyDecision;
     await redis.saveGameState(gameId, serializeGameState(modState));
@@ -574,7 +576,7 @@ describe('P6.S2.T7 — Trading between two players', () => {
 
     // Give player 0 Mediterranean Ave (space 1) and player 1 Baltic Ave (space 3)
     const modState = { ...state };
-    modState.players = state.players.map((p, i) => {
+    modState.players = state.players.map((p: any, i: number) => {
       if (i === 0) return { ...p, properties: [1] };
       if (i === 1) return { ...p, properties: [3] };
       return { ...p };
@@ -632,7 +634,7 @@ describe('P6.S2.T8 — Bankruptcy cascade', () => {
 
     // Set up: player 0 has properties and some cash, goes bankrupt to player 1
     const modState = { ...state };
-    modState.players = state.players.map((p, i) => {
+    modState.players = state.players.map((p: any, i: number) => {
       if (i === 0) return { ...p, cash: 50, properties: [1, 3] };
       if (i === 1) return { ...p, cash: 1500, properties: [6] };
       return { ...p };
@@ -678,7 +680,7 @@ describe('P6.S2.T8 — Bankruptcy cascade', () => {
 
     // Player 0 has properties and goes bankrupt to bank
     const modState = { ...state };
-    modState.players = state.players.map((p, i) => {
+    modState.players = state.players.map((p: any, i: number) => {
       if (i === 0) return { ...p, cash: 10, properties: [1, 3] };
       return { ...p };
     });

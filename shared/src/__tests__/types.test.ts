@@ -239,6 +239,7 @@ describe('Socket.IO event contracts (P0.S5.T11)', () => {
       leaveRoom: (_data, _cb) => {},
       gameAction: (_data, _cb) => {},
       reconnect: (_data, _cb) => {},
+      chatMessage: (_data, _cb) => {},
     };
     expect(_clientEvents).toBeDefined();
   });
@@ -256,6 +257,8 @@ describe('Socket.IO event contracts (P0.S5.T11)', () => {
       playerDisconnected: (_data) => {},
       playerReconnected: (_data) => {},
       turnTimerUpdate: (_data) => {},
+      chatMessage: (_data) => {},
+      gameOver: (_data) => {},
       error: (_message) => {},
     };
     expect(_serverEvents).toBeDefined();
