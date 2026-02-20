@@ -16,3 +16,17 @@ export {
 
 // Step 1A.2 — Turn State Machine
 export { TurnStateMachine, type TurnContext } from './turn-machine';
+
+// Step 1A.3 — Dice & Movement
+export {
+  rollDice,
+  calculateNewPosition,
+  didPassGo,
+  applyMovement,
+  getConsecutiveDoubles,
+  setConsecutiveDoubles,
+  resetDoublesTracker,
+  type DiceResult,
+  type RngFunction,
+  type MovementResult,
+} from './dice';
