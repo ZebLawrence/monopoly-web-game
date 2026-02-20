@@ -19,6 +19,7 @@ import {
   resumeTurnTimer,
   shouldPauseForState,
 } from '../game/turn-timer';
+import { recordLatency } from '../metrics/latency-tracker';
 
 type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
@@ -217,6 +218,7 @@ export function registerSocketHandlers(io: AppIO, socket: AppSocket, redis: Redi
   // --- Game Actions ---
 
   socket.on('gameAction', async (data, callback) => {
+    const actionStart = Date.now();
     try {
       const playerId = socket.data.playerId ?? socket.id;
       const room = await redis.loadRoomMetadata(data.roomCode);
@@ -236,6 +238,10 @@ export function registerSocketHandlers(io: AppIO, socket: AppSocket, redis: Redi
       // Broadcast updated state
       if (result.state) {
         io.to(data.roomCode).emit('stateUpdate', result.state);
+
+        const latencyMs = Date.now() - actionStart;
+        recordLatency(latencyMs);
+        console.log(JSON.stringify({ event: 'stateUpdate', latencyMs }));
 
         // Check for game over
         if (result.state.status === 'finished') {
