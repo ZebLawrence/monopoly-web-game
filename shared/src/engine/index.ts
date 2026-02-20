@@ -13,3 +13,6 @@ export {
   type PlayerSetup,
   type InitialGameStateOptions,
 } from './state';
+
+// Step 1A.2 — Turn State Machine
+export { TurnStateMachine, type TurnContext } from './turn-machine';
