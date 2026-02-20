@@ -4,26 +4,55 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-2) 0;
+  perspective: 1000px;
 }
 
-.card {
+.cardWrapper {
   width: 100%;
   max-width: 320px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cardWrapperHidden {
+  transform: rotateY(180deg);
+}
+
+.cardWrapperRevealed {
+  transform: rotateY(0deg);
+}
+
+/* Card front (the actual card content) */
+.card {
+  width: 100%;
   border: 3px solid;
   border-radius: var(--radius-lg);
   overflow: hidden;
   background-color: #fffde7;
-  transition: transform 0.4s ease, opacity 0.4s ease;
+  backface-visibility: hidden;
 }
 
-.cardHidden {
-  transform: rotateY(90deg);
-  opacity: 0;
-}
-
-.cardRevealed {
-  transform: rotateY(0deg);
-  opacity: 1;
+/* Card back (face down) */
+.cardBack {
+  position: absolute;
+  inset: 0;
+  border: 3px solid #666;
+  border-radius: var(--radius-lg);
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  background: repeating-linear-gradient(
+    45deg,
+    #e0e0e0,
+    #e0e0e0 10px,
+    #f5f5f5 10px,
+    #f5f5f5 20px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  color: #999;
 }
 
 .cardDeck {
@@ -53,4 +82,15 @@
   color: var(--color-text-secondary);
   text-align: center;
   border-top: 1px solid var(--color-border);
+}
+
+/* Keep legacy class names for backwards compatibility */
+.cardHidden {
+  transform: rotateY(90deg);
+  opacity: 0;
+}
+
+.cardRevealed {
+  transform: rotateY(0deg);
+  opacity: 1;
 }

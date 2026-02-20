@@ -1,0 +1,270 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: var(--space-4);
+}
+
+.modal {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 3px solid var(--color-danger);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  color: #fff;
+}
+
+.headerIcon {
+  font-size: var(--text-2xl);
+}
+
+.headerText h2 {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  margin: 0;
+}
+
+.headerText p {
+  font-size: var(--text-sm);
+  opacity: 0.9;
+  margin: 0;
+}
+
+.body {
+  padding: var(--space-4) var(--space-6);
+}
+
+.debtSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3);
+  background-color: #fce4ec;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+
+.debtLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.debtAmount {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-danger);
+}
+
+.cashAmount {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-success);
+}
+
+.remainingDebt {
+  text-align: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  font-weight: var(--weight-semibold);
+}
+
+.remainingDebtPositive {
+  background-color: #fce4ec;
+  color: var(--color-danger);
+}
+
+.remainingDebtCleared {
+  background-color: #e8f5e9;
+  color: var(--color-success);
+}
+
+.section {
+  margin-bottom: var(--space-4);
+}
+
+.sectionTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-2);
+}
+
+.assetItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-1);
+}
+
+.assetInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.assetColorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.assetName {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.assetValue {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-success);
+}
+
+.assetAction {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.assetAction:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.assetAction:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.emptyMessage {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-2);
+}
+
+.footer {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.bankruptButton {
+  flex: 1;
+  padding: var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  color: #fff;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.bankruptButton:hover {
+  opacity: 0.9;
+}
+
+.bankruptButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.closeButton {
+  flex: 1;
+  padding: var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.closeButton:hover {
+  background-color: var(--color-bg);
+}
+
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.confirmModal {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 360px;
+  text-align: center;
+}
+
+.confirmModal h3 {
+  margin-bottom: var(--space-2);
+  color: var(--color-danger);
+}
+
+.confirmModal p {
+  margin-bottom: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.confirmButtons {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.confirmButtons button {
+  flex: 1;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  border: none;
+}
+
+.confirmYes {
+  background-color: var(--color-danger);
+  color: #fff;
+}
+
+.confirmNo {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border) !important;
+}

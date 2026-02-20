@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import type { GameEvent, Player } from '@monopoly/shared';
 import { GameEventType } from '@monopoly/shared';
 import styles from './ActivityFeed.module.css';
@@ -35,7 +35,7 @@ const EVENT_ICONS: Partial<Record<GameEventType, string>> = {
   [GameEventType.TurnStarted]: '\u{1F504}',
 };
 
-function formatEventMessage(event: GameEvent, players: Player[]): string {
+export function formatEventMessage(event: GameEvent, players: Player[]): string {
   const p = event.payload;
   const playerId = (p.playerId as string) ?? '';
   const name = playerId ? getPlayerName(players, playerId) : '';
@@ -61,6 +61,14 @@ function formatEventMessage(event: GameEvent, players: Player[]): string {
       return `${name} passed Go and collected $200`;
     case GameEventType.PlayerBankrupt:
       return `${name} went bankrupt!`;
+    case GameEventType.HouseBuilt:
+      return `${name} built a ${p.buildingType === 'hotel' ? 'hotel' : 'house'}`;
+    case GameEventType.PropertyMortgaged:
+      return `${name} mortgaged a property`;
+    case GameEventType.TradeCompleted:
+      return `Trade completed between players`;
+    case GameEventType.AuctionStarted:
+      return `Auction started!`;
     case GameEventType.GameStarted:
       return 'Game started!';
     case GameEventType.TurnStarted:
@@ -79,26 +87,62 @@ function formatTime(timestamp: number): string {
 
 export function ActivityFeed({ events, players }: ActivityFeedProps) {
   const feedRef = useRef<HTMLDivElement>(null);
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
+  const lastEventCountRef = useRef(events.length);
 
+  // Auto-scroll when not scrolled up
   useEffect(() => {
-    if (feedRef.current) {
+    if (events.length > lastEventCountRef.current && !isScrolledUp && feedRef.current) {
       feedRef.current.scrollTop = feedRef.current.scrollHeight;
     }
-  }, [events.length]);
+    lastEventCountRef.current = events.length;
+  }, [events.length, isScrolledUp]);
+
+  const handleScroll = useCallback(() => {
+    const el = feedRef.current;
+    if (!el) return;
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
+    setIsScrolledUp(!isAtBottom);
+  }, []);
+
+  // Latest event for ARIA live region label (avoids duplicate text nodes)
+  const latestEvent = events.length > 0 ? events[events.length - 1] : null;
+  const latestMessage = latestEvent ? formatEventMessage(latestEvent, players) : '';
 
   return (
-    <div className={styles.container} data-testid="activity-feed">
+    <div
+      className={styles.container}
+      data-testid="activity-feed"
+      role="log"
+      aria-label="Game activity feed"
+    >
       <div className={styles.header}>Activity</div>
-      <div className={styles.feed} ref={feedRef} data-testid="activity-feed-list">
+      <div
+        className={styles.feed}
+        ref={feedRef}
+        onScroll={handleScroll}
+        data-testid="activity-feed-list"
+        tabIndex={0}
+      >
         {events.length === 0 && <div className={styles.empty}>No events yet</div>}
         {events.map((event) => (
           <div key={event.id} className={styles.event} data-testid="activity-feed-event">
-            <span className={styles.eventIcon}>{EVENT_ICONS[event.type] ?? '\u26AA'}</span>
+            <span className={styles.eventIcon} aria-hidden="true">
+              {EVENT_ICONS[event.type] ?? '\u26AA'}
+            </span>
             <span className={styles.eventMessage}>{formatEventMessage(event, players)}</span>
             <span className={styles.eventTime}>{formatTime(event.timestamp)}</span>
           </div>
         ))}
       </div>
+      {/* ARIA live region — uses aria-label to avoid duplicate text content in DOM */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        aria-label={latestMessage}
+        className="sr-only"
+      />
     </div>
   );
 }

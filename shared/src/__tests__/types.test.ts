@@ -232,23 +232,31 @@ describe('Socket.IO event contracts (P0.S5.T11)', () => {
   it('should have ClientToServerEvents interface with expected event names', () => {
     // Type-level check: if this compiles, the interface has the expected shape
     const _clientEvents: ClientToServerEvents = {
-      joinGame: (_gameId: string, _playerName: string) => {},
-      leaveGame: (_gameId: string) => {},
-      gameAction: (_gameId: string, _action: GameAction) => {},
-      createGame: (_settings: { playerName: string }) => {},
-      startGame: (_gameId: string) => {},
+      createRoom: (_settings, _cb) => {},
+      joinRoom: (_data, _cb) => {},
+      selectToken: (_data, _cb) => {},
+      startGame: (_data, _cb) => {},
+      leaveRoom: (_data, _cb) => {},
+      gameAction: (_data, _cb) => {},
+      reconnect: (_data, _cb) => {},
     };
     expect(_clientEvents).toBeDefined();
   });
 
   it('should have ServerToClientEvents interface with expected event names', () => {
     const _serverEvents: ServerToClientEvents = {
-      gameState: (_state: GameState) => {},
-      gameEvent: (_event: GameEvent) => {},
-      error: (_message: string) => {},
-      playerJoined: (_player: { id: string; name: string }) => {},
-      playerLeft: (_playerId: string) => {},
-      gameCreated: (_gameId: string) => {},
+      roomUpdated: (_room) => {},
+      playerJoined: (_player) => {},
+      playerLeft: (_data) => {},
+      playerUpdated: (_player) => {},
+      gameStarted: (_state) => {},
+      stateUpdate: (_state) => {},
+      gameEvent: (_event) => {},
+      actionError: (_data) => {},
+      playerDisconnected: (_data) => {},
+      playerReconnected: (_data) => {},
+      turnTimerUpdate: (_data) => {},
+      error: (_message) => {},
     };
     expect(_serverEvents).toBeDefined();
   });

@@ -45,6 +45,9 @@ export interface UseGameSocketReturn {
     roomCode: string,
     playerId: string,
   ) => Promise<{ ok: boolean; room?: RoomMetadata; gameState?: GameState; error?: string }>;
+
+  // Chat
+  sendChatMessage: (roomCode: string, message: string) => Promise<{ ok: boolean; error?: string }>;
 }
 
 export function useGameSocket(): UseGameSocketReturn {
@@ -193,6 +196,18 @@ export function useGameSocket(): UseGameSocketReturn {
     [],
   );
 
+  const sendChatMessage = useCallback(
+    async (code: string, message: string): Promise<{ ok: boolean; error?: string }> => {
+      const socket = socketRef.current;
+      if (!socket?.connected) return { ok: false, error: 'Not connected' };
+
+      return new Promise((resolve) => {
+        socket.emit('chatMessage', { roomCode: code, message }, resolve);
+      });
+    },
+    [],
+  );
+
   return {
     socket: socketRef.current,
     connected,
@@ -205,5 +220,6 @@ export function useGameSocket(): UseGameSocketReturn {
     leaveRoom,
     emitAction,
     reconnect: reconnectFn,
+    sendChatMessage,
   };
 }

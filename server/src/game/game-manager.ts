@@ -29,6 +29,7 @@ import {
   getActivePlayer,
   getPlayerById,
   isGameOver,
+  declareBankruptcy,
   TurnStateMachine,
   getConsecutiveDoubles,
   type PlayerSetup,
@@ -104,6 +105,7 @@ export async function processAction(
   const activePlayer = getActivePlayer(state);
 
   // Most actions require it to be your turn
+  // DeclareBankruptcy can be done by the current player at any time
   const turnActions = [
     'RollDice',
     'RollForDoubles',
@@ -114,6 +116,7 @@ export async function processAction(
     'EndTurn',
     'PayJailFine',
     'UseJailCard',
+    'DeclareBankruptcy',
   ];
 
   if (turnActions.includes(action.type) && activePlayer.id !== playerId) {
@@ -557,6 +560,25 @@ function applyAction(
         type: 'usedJailCard',
         spaceName: 'Jail',
       };
+      return state;
+    }
+
+    case 'DeclareBankruptcy': {
+      state = declareBankruptcy(state, playerId, action.creditorId);
+
+      // Clear transient UI state
+      state.lastDiceResult = null;
+      state.lastCardDrawn = null;
+      state.lastResolution = null;
+      state.pendingBuyDecision = null;
+
+      // If the bankrupt player was the current player, advance to next
+      const activePlayer = state.players[state.currentPlayerIndex];
+      if (activePlayer && (activePlayer.isBankrupt || !activePlayer.isActive)) {
+        state = advanceToNextPlayer(state);
+        machine.currentState = TurnState.WaitingForRoll;
+      }
+
       return state;
     }
 

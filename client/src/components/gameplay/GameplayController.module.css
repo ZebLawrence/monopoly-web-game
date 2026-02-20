@@ -57,6 +57,11 @@
   transform: translateY(0);
 }
 
+.rollButton:focus-visible {
+  outline: 3px solid #90caf9;
+  outline-offset: 2px;
+}
+
 .endTurnButton {
   padding: var(--space-2) var(--space-5);
   font-size: var(--text-base);
@@ -73,6 +78,96 @@
 .endTurnButton:hover {
   background-color: var(--color-primary);
   color: #fff;
+}
+
+.endTurnButton:focus-visible {
+  outline: 3px solid #90caf9;
+  outline-offset: 2px;
+}
+
+/* Spectator Banner */
+.spectatorBanner {
+  text-align: center;
+  padding: var(--space-2) var(--space-3);
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Feed Controls */
+.feedControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.feedFilterRow {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.filterButton {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filterButton:hover {
+  background-color: var(--color-bg);
+}
+
+.filterActive {
+  background-color: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.filterButton:focus-visible {
+  outline: 2px solid #90caf9;
+  outline-offset: 1px;
+}
+
+.soundToggle {
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+  font-size: var(--text-base);
+  line-height: 1;
+  transition: background-color var(--transition-fast);
+}
+
+.soundToggle:hover {
+  background-color: var(--color-bg);
+}
+
+.soundToggle:focus-visible {
+  outline: 2px solid #90caf9;
+  outline-offset: 1px;
+}
+
+/* Screen reader only */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @keyframes glow {

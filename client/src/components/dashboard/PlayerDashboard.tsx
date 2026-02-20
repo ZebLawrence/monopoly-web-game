@@ -54,7 +54,12 @@ export function PlayerDashboard({
   const otherPlayers = allPlayers.filter((p) => p.id !== currentPlayer.id);
 
   return (
-    <div className={styles.dashboard} data-testid="player-dashboard">
+    <div
+      className={styles.dashboard}
+      data-testid="player-dashboard"
+      role="region"
+      aria-label="Player dashboard"
+    >
       <TurnIndicator currentPlayer={currentPlayer} />
       <CurrentPlayerPanel player={currentPlayer} />
       <OwnedPropertiesList properties={ownedProperties} onPropertyClick={setSelectedProperty} />
@@ -152,7 +157,12 @@ export function OtherPlayersSummary({
   properties: Property[];
 }) {
   return (
-    <div className={styles.otherPlayers} data-testid="other-players">
+    <div
+      className={styles.otherPlayers}
+      data-testid="other-players"
+      role="list"
+      aria-label="Other players"
+    >
       <div className={styles.sectionTitle}>Other Players</div>
       {players.map((player) => {
         const propertyCount = properties.filter((p) => p.ownerId === player.id).length;
@@ -160,8 +170,12 @@ export function OtherPlayersSummary({
           <div
             key={player.id}
             className={`${styles.otherPlayer} ${player.isBankrupt ? styles.otherPlayerEliminated : ''}`}
+            role="listitem"
+            aria-label={`${player.name}${player.isBankrupt ? ' - Bankrupt' : ''}`}
           >
-            <span className={styles.otherPlayerToken}>{TOKEN_ICONS[player.token] || '\u26AB'}</span>
+            <span className={styles.otherPlayerToken} aria-hidden="true">
+              {TOKEN_ICONS[player.token] || '\u26AB'}
+            </span>
             <div className={styles.otherPlayerInfo}>
               <span className={styles.otherPlayerName}>
                 {player.name}

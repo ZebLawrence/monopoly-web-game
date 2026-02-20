@@ -71,6 +71,12 @@ export interface ClientToServerEvents {
       error?: string;
     }) => void,
   ) => void;
+
+  // Chat
+  chatMessage: (
+    data: { roomCode: string; message: string },
+    callback: (response: { ok: boolean; error?: string }) => void,
+  ) => void;
 }
 
 // --- Server → Client events ---
@@ -95,8 +101,31 @@ export interface ServerToClientEvents {
   // Turn timer
   turnTimerUpdate: (data: { secondsRemaining: number; phase: string }) => void;
 
+  // Chat
+  chatMessage: (data: ChatMessage) => void;
+
+  // Game over
+  gameOver: (data: { winnerId: string; standings: GameStanding[] }) => void;
+
   // Errors
   error: (message: string) => void;
+}
+
+export interface ChatMessage {
+  id: string;
+  playerId: string;
+  playerName: string;
+  message: string;
+  timestamp: number;
+  isSpectator: boolean;
+}
+
+export interface GameStanding {
+  playerId: string;
+  playerName: string;
+  position: number;
+  netWorth: number;
+  eliminationOrder: number;
 }
 
 // --- Inter-server types (internal) ---

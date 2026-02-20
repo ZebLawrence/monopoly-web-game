@@ -173,6 +173,47 @@ export function registerSocketHandlers(io: AppIO, socket: AppSocket, redis: Redi
     }
   });
 
+  // --- Chat ---
+
+  socket.on('chatMessage', async (data, callback) => {
+    try {
+      const playerId = socket.data.playerId ?? socket.id;
+      const playerName = socket.data.playerName ?? 'Unknown';
+      const room = await redis.loadRoomMetadata(data.roomCode);
+
+      if (!room) {
+        callback({ ok: false, error: 'Room not found' });
+        return;
+      }
+
+      // Check if player is a spectator (bankrupt but still in room)
+      let isSpectator = false;
+      if (room.gameId) {
+        const raw = await redis.loadGameState(room.gameId);
+        if (raw) {
+          const state = deserializeGameState(raw);
+          const player = state.players.find((p: { id: string }) => p.id === playerId);
+          isSpectator = player ? player.isBankrupt : false;
+        }
+      }
+
+      const message = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        playerId,
+        playerName,
+        message: data.message.slice(0, 500),
+        timestamp: Date.now(),
+        isSpectator,
+      };
+
+      io.to(data.roomCode).emit('chatMessage', message);
+      callback({ ok: true });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to send message';
+      callback({ ok: false, error: message });
+    }
+  });
+
   // --- Game Actions ---
 
   socket.on('gameAction', async (data, callback) => {
@@ -196,8 +237,46 @@ export function registerSocketHandlers(io: AppIO, socket: AppSocket, redis: Redi
       if (result.state) {
         io.to(data.roomCode).emit('stateUpdate', result.state);
 
+        // Check for game over
+        if (result.state.status === 'finished') {
+          const { getWinner, calculateNetWorth } = await import('@monopoly/shared');
+          const winnerId = getWinner(result.state);
+          if (winnerId) {
+            const standings = result.state.players.map((p, _idx) => {
+              const netWorth = p.isBankrupt ? 0 : calculateNetWorth(result.state!, p.id);
+              return {
+                playerId: p.id,
+                playerName: p.name,
+                position: p.id === winnerId ? 1 : 0,
+                netWorth,
+                eliminationOrder: p.isBankrupt ? 1 : 0,
+              };
+            });
+            // Sort: winner first, then by net worth descending
+            standings.sort((a, b) => {
+              if (a.playerId === winnerId) return -1;
+              if (b.playerId === winnerId) return 1;
+              return b.netWorth - a.netWorth;
+            });
+            standings.forEach((s, i) => {
+              s.position = i + 1;
+            });
+
+            io.to(data.roomCode).emit('gameOver', { winnerId, standings });
+
+            // Update room status
+            const roomMeta = await redis.loadRoomMetadata(data.roomCode);
+            if (roomMeta) {
+              roomMeta.status = 'finished';
+              await redis.saveRoomMetadata(data.roomCode, roomMeta);
+            }
+          }
+        }
+
         // Handle turn timer based on new state
-        handleTurnTimerUpdate(io, redis, data.roomCode, result.state);
+        if (result.state.status !== 'finished') {
+          handleTurnTimerUpdate(io, redis, data.roomCode, result.state);
+        }
       }
 
       callback({ ok: true });

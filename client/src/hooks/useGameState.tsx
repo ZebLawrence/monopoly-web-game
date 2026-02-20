@@ -8,7 +8,15 @@ import React, {
   useCallback,
   type ReactNode,
 } from 'react';
-import type { GameState, GameEvent, RoomMetadata, RoomPlayer, GameAction } from '@monopoly/shared';
+import type {
+  GameState,
+  GameEvent,
+  RoomMetadata,
+  RoomPlayer,
+  GameAction,
+  ChatMessage,
+  GameStanding,
+} from '@monopoly/shared';
 import { useGameSocket, type UseGameSocketReturn } from './useGameSocket';
 
 // --- State shape ---
@@ -29,6 +37,12 @@ export interface GameContextState {
   // Turn timer
   turnTimer: { secondsRemaining: number; phase: string } | null;
 
+  // Chat
+  chatMessages: ChatMessage[];
+
+  // Game over
+  gameOverData: { winnerId: string; standings: GameStanding[] } | null;
+
   // Errors
   lastError: string | null;
 }
@@ -41,6 +55,8 @@ const initialState: GameContextState = {
   gameState: null,
   events: [],
   turnTimer: null,
+  chatMessages: [],
+  gameOverData: null,
   lastError: null,
 };
 
@@ -59,6 +75,8 @@ type GameContextAction =
   | { type: 'TURN_TIMER_UPDATE'; data: { secondsRemaining: number; phase: string } }
   | { type: 'PLAYER_DISCONNECTED'; playerId: string }
   | { type: 'PLAYER_RECONNECTED'; playerId: string }
+  | { type: 'CHAT_MESSAGE'; message: ChatMessage }
+  | { type: 'GAME_OVER'; data: { winnerId: string; standings: GameStanding[] } }
   | { type: 'ACTION_ERROR'; message: string }
   | { type: 'CLEAR_ERROR' }
   | { type: 'RESET' };
@@ -153,6 +171,12 @@ function gameReducer(state: GameContextState, action: GameContextAction): GameCo
       };
     }
 
+    case 'CHAT_MESSAGE':
+      return { ...state, chatMessages: [...state.chatMessages, action.message] };
+
+    case 'GAME_OVER':
+      return { ...state, gameOverData: action.data };
+
     case 'ACTION_ERROR':
       return { ...state, lastError: action.message };
 
@@ -212,6 +236,9 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'PLAYER_DISCONNECTED', playerId: data.playerId }),
       playerReconnected: (data: { playerId: string }) =>
         dispatch({ type: 'PLAYER_RECONNECTED', playerId: data.playerId }),
+      chatMessage: (msg: ChatMessage) => dispatch({ type: 'CHAT_MESSAGE', message: msg }),
+      gameOver: (data: { winnerId: string; standings: GameStanding[] }) =>
+        dispatch({ type: 'GAME_OVER', data }),
       actionError: (data: { message: string }) =>
         dispatch({ type: 'ACTION_ERROR', message: data.message }),
       error: (message: string) => dispatch({ type: 'ACTION_ERROR', message }),

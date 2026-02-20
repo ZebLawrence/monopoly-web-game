@@ -3,6 +3,7 @@ import { createDeck, drawCard, returnCardToDeck, applyCardEffect } from '../../e
 import { setPropertyState, resetPropertyStates } from '../../engine/spaces';
 import { createInitialGameState, type PlayerSetup } from '../../engine/state';
 import type { Card } from '../../types/card';
+import type { GameState } from '../../types/gameState';
 import type { DiceResult } from '../../engine/dice';
 import chanceCardsData from '../../data/chance-cards.json';
 
@@ -48,8 +49,11 @@ describe('Step 1A.5 — Card System', () => {
       // Skip if GOOJF (they get removed)
       if (firstCard.effect.type === 'goojf') {
         // Put a non-goojf card first
-        const nonGoojf = state.decks.chance.find((c) => c.effect.type !== 'goojf')!;
-        state.decks.chance = [nonGoojf, ...state.decks.chance.filter((c) => c.id !== nonGoojf.id)];
+        const nonGoojf = state.decks.chance.find((c: Card) => c.effect.type !== 'goojf')!;
+        state.decks.chance = [
+          nonGoojf,
+          ...state.decks.chance.filter((c: Card) => c.id !== nonGoojf.id),
+        ];
       }
       const topCard = state.decks.chance[0];
       const { state: newState, card } = drawCard(state, 'chance');
@@ -61,8 +65,11 @@ describe('Step 1A.5 — Card System', () => {
     it('P1A.S5.T3: GOOJF card removed from deck and added to player', () => {
       const state = makeState();
       // Put GOOJF card first
-      const goojfCard = state.decks.chance.find((c) => c.effect.type === 'goojf')!;
-      state.decks.chance = [goojfCard, ...state.decks.chance.filter((c) => c.id !== goojfCard.id)];
+      const goojfCard = state.decks.chance.find((c: Card) => c.effect.type === 'goojf')!;
+      state.decks.chance = [
+        goojfCard,
+        ...state.decks.chance.filter((c: Card) => c.id !== goojfCard.id),
+      ];
 
       const { state: newState, card } = drawCard(state, 'chance');
       expect(card.effect.type).toBe('goojf');
@@ -425,20 +432,20 @@ describe('Step 1A.5 — Card System', () => {
       const state = makeState();
 
       // Put Chance GOOJF first
-      const chanceGoojf = state.decks.chance.find((c) => c.effect.type === 'goojf')!;
+      const chanceGoojf = state.decks.chance.find((c: Card) => c.effect.type === 'goojf')!;
       state.decks.chance = [
         chanceGoojf,
-        ...state.decks.chance.filter((c) => c.id !== chanceGoojf.id),
+        ...state.decks.chance.filter((c: Card) => c.id !== chanceGoojf.id),
       ];
 
       const { state: state2 } = drawCard(state, 'chance');
       expect(state2.players[0].getOutOfJailFreeCards).toBe(1);
 
       // Put CC GOOJF first
-      const ccGoojf = state2.decks.communityChest.find((c) => c.effect.type === 'goojf')!;
+      const ccGoojf = state2.decks.communityChest.find((c: Card) => c.effect.type === 'goojf')!;
       state2.decks.communityChest = [
         ccGoojf,
-        ...state2.decks.communityChest.filter((c) => c.id !== ccGoojf.id),
+        ...state2.decks.communityChest.filter((c: Card) => c.id !== ccGoojf.id),
       ];
 
       const { state: state3 } = drawCard(state2, 'communityChest');

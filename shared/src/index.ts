@@ -30,6 +30,8 @@ export type {
   SocketData,
   RoomPlayer,
   RoomMetadata,
+  ChatMessage,
+  GameStanding,
 } from './types/socketEvents';
 
 // Engine

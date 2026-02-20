@@ -1,0 +1,207 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-surface);
+  height: 300px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.messageList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+  scroll-behavior: smooth;
+}
+
+.message {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  animation: fadeIn 0.2s ease;
+}
+
+.messageName {
+  font-weight: var(--weight-semibold);
+  margin-right: var(--space-1);
+}
+
+.messageText {
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.messageTime {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-left: var(--space-1);
+}
+
+.spectatorBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  background-color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  margin-left: var(--space-1);
+  vertical-align: middle;
+}
+
+.newMessagesBar {
+  text-align: center;
+  padding: var(--space-1);
+  background-color: var(--color-info);
+  color: #fff;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.newMessagesBar:hover {
+  opacity: 0.9;
+}
+
+.inputRow {
+  display: flex;
+  border-top: 1px solid var(--color-border);
+}
+
+.input {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  outline: none;
+  font-size: var(--text-sm);
+  background: transparent;
+}
+
+.sendButton {
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.sendButton:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Mobile toggle */
+.mobileToggle {
+  display: none;
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: 900;
+}
+
+.toggleButton {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  border: none;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--text-xl);
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unreadBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-danger);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: var(--weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobileDrawer {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50vh;
+  z-index: 950;
+  background-color: var(--color-surface);
+  border-top: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .container {
+    display: none;
+  }
+
+  .mobileToggle {
+    display: block;
+  }
+
+  .mobileDrawer {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobileDrawer .container {
+    display: flex;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

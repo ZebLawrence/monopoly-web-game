@@ -16,6 +16,7 @@ export type GameAction =
   | { type: 'PayJailFine' }
   | { type: 'UseJailCard' }
   | { type: 'RollForDoubles' }
+  | { type: 'DeclareBankruptcy'; creditorId: string | 'bank' }
   | { type: 'EndTurn' };
 
 export interface TradeOfferPayload {

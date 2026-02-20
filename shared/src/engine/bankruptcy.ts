@@ -81,7 +81,7 @@ function declareBankruptcyToPlayer(
     // Sell any buildings back to bank
     const propState = getPropertyState(state, spaceId);
     if (propState && propState.houses > 0) {
-      const space = getSpaceById(state, spaceId);
+      const _space = getSpaceById(state, spaceId);
       const supply = getBuildingSupply(state);
       if (propState.houses === 5) {
         supply.hotels += 1;
