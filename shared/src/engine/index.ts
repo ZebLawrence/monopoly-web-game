@@ -114,3 +114,18 @@ export {
   calculateNetWorth,
   determineTimedGameWinner,
 } from './bankruptcy';
+
+// Step 1A.10 — Event System
+export {
+  GameEventEmitter,
+  GameEventLog,
+  createPlayerMovedEvent,
+  createPropertyPurchasedEvent,
+  createRentPaidEvent,
+  createCardDrawnEvent,
+  createPlayerBankruptEvent,
+  createTradeCompletedEvent,
+  createBuildingPlacedEvent,
+  createBuildingSoldEvent,
+  createDiceRolledEvent,
+} from './events';
