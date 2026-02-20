@@ -1,0 +1,38 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.code {
+  font-size: 6rem;
+  font-weight: var(--weight-bold);
+  color: var(--color-board-green);
+  line-height: 1;
+  margin-bottom: var(--space-2);
+}
+
+.message {
+  font-size: var(--text-xl);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-8);
+}
+
+.homeLink {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-medium);
+  transition: background-color var(--transition-fast);
+}
+
+.homeLink:hover {
+  background-color: var(--color-primary-hover);
+}

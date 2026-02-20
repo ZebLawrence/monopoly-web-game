@@ -1,0 +1,46 @@
+.container {
+  display: inline-flex;
+  align-items: center;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-xl);
+  color: var(--color-success);
+  transition: color var(--transition-fast);
+}
+
+.positive {
+  animation: flashGreen 0.6s ease;
+}
+
+.negative {
+  animation: flashRed 0.6s ease;
+}
+
+@keyframes flashGreen {
+  0% {
+    color: var(--color-success);
+    transform: scale(1);
+  }
+  50% {
+    color: #00e676;
+    transform: scale(1.1);
+  }
+  100% {
+    color: var(--color-success);
+    transform: scale(1);
+  }
+}
+
+@keyframes flashRed {
+  0% {
+    color: var(--color-success);
+    transform: scale(1);
+  }
+  50% {
+    color: var(--color-danger);
+    transform: scale(1.1);
+  }
+  100% {
+    color: var(--color-success);
+    transform: scale(1);
+  }
+}
