@@ -1,0 +1,129 @@
+/* Rent Breakdown */
+.breakdown {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.colorBand {
+  width: 6px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.breakdownContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.propertyName {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-base);
+  margin-bottom: var(--space-1);
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+}
+
+.totalRow {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-1);
+  margin-top: var(--space-1);
+  font-weight: var(--weight-semibold);
+}
+
+.rentValue {
+  font-weight: var(--weight-bold);
+  color: var(--color-primary);
+}
+
+/* Notification */
+.notification {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.message {
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+/* Cash Transfer Animation */
+.transferAnimation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.transferFrom,
+.transferTo {
+  font-weight: var(--weight-medium);
+}
+
+.transferAmount {
+  font-weight: var(--weight-bold);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.transferAnimating {
+  animation: transferSlide 1.5s ease-out;
+}
+
+.transferArrow {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+}
+
+@keyframes transferSlide {
+  0% { transform: translateX(0); opacity: 0.3; }
+  50% { transform: translateX(10px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* Insufficient Funds Warning */
+.insufficientFunds {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.warningIcon {
+  font-size: 3rem;
+}
+
+.warningMessage {
+  font-size: var(--text-lg);
+  line-height: 1.5;
+}
+
+.shortfallMessage {
+  font-size: var(--text-base);
+  color: var(--color-danger);
+  font-weight: var(--weight-medium);
+}
+
+.warningActions {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.warningActions > * {
+  flex: 1;
+}

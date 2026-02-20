@@ -1,0 +1,219 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.propertySection {
+  display: flex;
+  justify-content: center;
+}
+
+.auctionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.bidStatus {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.currentBid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bidLabel {
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.bidAmount {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-primary);
+}
+
+.highBidder {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.biddersInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.bidderChip {
+  display: inline-flex;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.bidderPassed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.bidderLeading {
+  background-color: #e8f5e9;
+  border-color: #388E3C;
+  color: #2e7d32;
+}
+
+/* Timer */
+.timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.timerLow {
+  color: var(--color-danger);
+  animation: pulse 1s infinite;
+}
+
+.timerIcon {
+  font-size: 1.2em;
+}
+
+.timerValue {
+  min-width: 3ch;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Bid Controls */
+.bidControls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-primary);
+}
+
+.bidInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bidInputLabel {
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+.bidInputWrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.dollarSign {
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--color-bg);
+  font-weight: var(--weight-bold);
+}
+
+.bidInput {
+  flex: 1;
+  border: none;
+  padding: var(--space-2);
+  font-size: var(--text-base);
+  outline: none;
+}
+
+.incrementButtons {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.incrementButtons > * {
+  flex: 1;
+}
+
+.playerCash {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.bidActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.bidActions > * {
+  flex: 1;
+}
+
+/* Passed Message */
+.passedMessage {
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* Auction Result */
+.resultContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.winnerAnnouncement {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.winnerText {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-primary);
+}
+
+.propertyName {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+}
+
+.noBidsMessage {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  padding: var(--space-4);
+}

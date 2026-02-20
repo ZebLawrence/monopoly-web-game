@@ -1,0 +1,198 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Player Selection */
+.playerSelection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.selectionTitle {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  margin-bottom: var(--space-2);
+}
+
+.playerOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.playerOption:hover {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.playerName {
+  font-weight: var(--weight-medium);
+  flex: 1;
+}
+
+.playerCash {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.playerPropCount {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Trade Header */
+.tradeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+}
+
+/* Trade Columns */
+.tradeColumns {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.tradeColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.columnTitle {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-base);
+  text-align: center;
+  padding-bottom: var(--space-1);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.divider {
+  width: 1px;
+  background-color: var(--color-border);
+  align-self: stretch;
+}
+
+/* Property Picker */
+.propertyPicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.noProps {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: var(--space-2);
+}
+
+.propChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  background: var(--color-surface);
+  transition: all var(--transition-fast);
+}
+
+.propChip:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.propSelected {
+  background-color: #e8f5e9;
+  border-color: #388E3C !important;
+  font-weight: var(--weight-bold);
+}
+
+.propDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Cash Input */
+.cashInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cashLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+.cashInputWrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.dollarSign {
+  padding: var(--space-1) var(--space-2);
+  background-color: var(--color-bg);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+}
+
+.cashInput {
+  flex: 1;
+  border: none;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  outline: none;
+  width: 60px;
+}
+
+/* GOOJF Toggle */
+.cardToggle {
+  padding: var(--space-1) 0;
+}
+
+.cardLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+/* Validation */
+.validationError {
+  padding: var(--space-2) var(--space-3);
+  background-color: #fce4ec;
+  color: #c62828;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  text-align: center;
+}
