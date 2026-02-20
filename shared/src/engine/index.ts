@@ -50,3 +50,13 @@ export {
   type PropertyOwnership,
   type PropertyStateEntry,
 } from './spaces';
+
+// Step 1A.5 — Card System
+export {
+  createDeck,
+  drawCard,
+  returnCardToDeck,
+  applyCardEffect,
+  type DrawCardResult,
+  type CardEffectResult,
+} from './cards';
