@@ -95,3 +95,12 @@ export {
   getTrade,
   resetTrades,
 } from './trading';
+
+// Step 1A.8 — Jail Logic
+export {
+  sendToJail,
+  payJailFine,
+  useJailCard,
+  rollInJail,
+  type JailRollResult,
+} from './jail';
