@@ -24,7 +24,11 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - REDIS_URL=redis://redis:6379
+      # PRODUCTION: Change to your HTTPS client origin (e.g., https://game.example.com).
+      # The server uses this for CORS and must match the client's actual URL.
       - CLIENT_ORIGIN=http://localhost:3000
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - GIT_SHA=${GIT_SHA:-}
     depends_on:
       redis:
         condition: service_healthy
@@ -35,11 +39,16 @@ services:
       context: .
       dockerfile: client/Dockerfile
       args:
+        # PRODUCTION: Must use https:// in production (e.g., https://api.example.com).
+        # Socket.IO will automatically upgrade to wss:// when the server URL uses https.
         - NEXT_PUBLIC_SERVER_URL=http://localhost:3001
     ports:
       - '3000:3000'
     environment:
+      # PRODUCTION: Must use https:// in production (e.g., https://api.example.com).
       - NEXT_PUBLIC_SERVER_URL=http://localhost:3001
+      - NEXT_PUBLIC_SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_GIT_SHA=${GIT_SHA:-}
     depends_on:
       - server
     restart: unless-stopped

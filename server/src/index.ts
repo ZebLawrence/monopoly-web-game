@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -11,6 +12,16 @@ import type {
 import { registerSocketHandlers } from './socket/handlers';
 import { createRedisClient, RedisClient } from './redis/client';
 import { createRateLimiter } from './middleware/rate-limit';
+import { getLatencyMetrics } from './metrics/latency-tracker';
+
+// Initialize Sentry before anything else (only if DSN is configured)
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    release: process.env.GIT_SHA,
+  });
+}
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
@@ -42,6 +53,15 @@ export function createApp(redis?: RedisClient): ReturnType<typeof express> {
       res.status(503).json({ status: 'not ready', redis: 'disconnected' });
     }
   });
+
+  app.get('/metrics', (_req, res) => {
+    res.json(getLatencyMetrics());
+  });
+
+  // Sentry error handler must be registered after all routes
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+  }
 
   return app;
 }
