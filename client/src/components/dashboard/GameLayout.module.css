@@ -1,0 +1,194 @@
+/* Game Layout - Desktop (≥1024px) */
+.gameLayout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+.boardSection {
+  flex: 0 0 65%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  position: relative;
+}
+
+.dashboardSection {
+  flex: 0 0 35%;
+  overflow-y: auto;
+  border-left: 1px solid var(--color-border);
+}
+
+/* Tablet (768-1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .gameLayout {
+    flex-direction: column;
+  }
+
+  .boardSection {
+    flex: 0 0 auto;
+    height: 55vh;
+    padding: var(--space-2);
+  }
+
+  .dashboardSection {
+    flex: 1;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    overflow-y: auto;
+  }
+}
+
+/* Phone (<768px) */
+@media (max-width: 767px) {
+  .gameLayout {
+    flex-direction: column;
+    position: relative;
+  }
+
+  .boardSection {
+    flex: 1;
+    padding: var(--space-2);
+  }
+
+  .dashboardSection {
+    display: none;
+  }
+
+  .dashboardSectionVisible {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60vh;
+    z-index: 100;
+    background-color: var(--color-surface);
+    border-top: 2px solid var(--color-border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.3s ease;
+    overflow-y: auto;
+  }
+}
+
+/* Drawer Handle */
+.drawerHandle {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .drawerHandle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) 0;
+    cursor: pointer;
+    position: sticky;
+    top: 0;
+    background-color: var(--color-surface);
+    z-index: 1;
+  }
+
+  .drawerBar {
+    width: 40px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-border);
+  }
+}
+
+/* Mobile Toggle */
+.mobileToggle {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobileToggle {
+    display: flex;
+    position: fixed;
+    bottom: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    gap: var(--space-2);
+  }
+
+  .toggleButton {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    padding: var(--space-2) var(--space-4);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Mobile Tabs */
+.mobileTabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobileTabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 28px;
+    background-color: var(--color-surface);
+    z-index: 1;
+  }
+
+  .mobileTab {
+    flex: 1;
+    padding: var(--space-3);
+    border: none;
+    background: none;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    min-height: 44px;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+  }
+
+  .mobileTabActive {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+}
+
+.mobileTabContent {
+  padding: var(--space-3);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 767px) {
+  .gameLayout button,
+  .gameLayout a,
+  .gameLayout [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
