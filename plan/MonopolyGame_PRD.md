@@ -132,66 +132,66 @@ Each deck contains 16 cards with effects ranging from cash awards and penalties 
 
 ### 5.1 Lobby & Game Setup
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| FR-101 | Users can create a new game room and receive a shareable join link/code. | Must Have |
-| FR-102 | Users can join an existing game room via link or code. | Must Have |
+| ID     | Requirement                                                                                                    | Priority  |
+| ------ | -------------------------------------------------------------------------------------------------------------- | --------- |
+| FR-101 | Users can create a new game room and receive a shareable join link/code.                                       | Must Have |
+| FR-102 | Users can join an existing game room via link or code.                                                         | Must Have |
 | FR-103 | The host can configure game settings (number of players, starting cash, optional house rules) before starting. | Must Have |
-| FR-104 | Players select a token from a set of classic Monopoly tokens. | Must Have |
-| FR-105 | A real-time lobby shows connected players and their chosen tokens. | Must Have |
-| FR-106 | The host can start the game once 2+ players have joined. | Must Have |
+| FR-104 | Players select a token from a set of classic Monopoly tokens.                                                  | Must Have |
+| FR-105 | A real-time lobby shows connected players and their chosen tokens.                                             | Must Have |
+| FR-106 | The host can start the game once 2+ players have joined.                                                       | Must Have |
 
 ### 5.2 Core Gameplay
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| FR-201 | Dice rolling with animation and random result generation (server-authoritative). | Must Have |
-| FR-202 | Automatic token movement with animation along the board path. | Must Have |
+| ID     | Requirement                                                                                       | Priority  |
+| ------ | ------------------------------------------------------------------------------------------------- | --------- |
+| FR-201 | Dice rolling with animation and random result generation (server-authoritative).                  | Must Have |
+| FR-202 | Automatic token movement with animation along the board path.                                     | Must Have |
 | FR-203 | Automatic rent calculation and payment based on property ownership, improvements, and monopolies. | Must Have |
-| FR-204 | Property purchase flow: buy at listed price or trigger auction among all players. | Must Have |
-| FR-205 | Auction system with real-time bidding, minimum $1 increments, and countdown timer. | Must Have |
-| FR-206 | Doubles detection, extra turns, and three-doubles-to-jail rule. | Must Have |
-| FR-207 | Jail mechanics: Go to Jail trigger, pay fine, use card, or roll doubles to exit. | Must Have |
-| FR-208 | Community Chest and Chance card draw, display, and effect execution. | Must Have |
-| FR-209 | Tax spaces deduct the correct amount from the player. | Must Have |
-| FR-210 | Passing or landing on Go awards $200. | Must Have |
+| FR-204 | Property purchase flow: buy at listed price or trigger auction among all players.                 | Must Have |
+| FR-205 | Auction system with real-time bidding, minimum $1 increments, and countdown timer.                | Must Have |
+| FR-206 | Doubles detection, extra turns, and three-doubles-to-jail rule.                                   | Must Have |
+| FR-207 | Jail mechanics: Go to Jail trigger, pay fine, use card, or roll doubles to exit.                  | Must Have |
+| FR-208 | Community Chest and Chance card draw, display, and effect execution.                              | Must Have |
+| FR-209 | Tax spaces deduct the correct amount from the player.                                             | Must Have |
+| FR-210 | Passing or landing on Go awards $200.                                                             | Must Have |
 
 ### 5.3 Property Management
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
+| ID     | Requirement                                                                            | Priority  |
+| ------ | -------------------------------------------------------------------------------------- | --------- |
 | FR-301 | Players can view a property card with full details (cost, rent tiers, mortgage value). | Must Have |
 | FR-302 | Players can build houses/hotels on monopolized color sets with even-build enforcement. | Must Have |
-| FR-303 | Building supply limits enforced (32 houses, 12 hotels). | Must Have |
-| FR-304 | Players can sell buildings back to the bank at half price. | Must Have |
-| FR-305 | Players can mortgage/unmortgage properties with correct interest calculation. | Must Have |
+| FR-303 | Building supply limits enforced (32 houses, 12 hotels).                                | Must Have |
+| FR-304 | Players can sell buildings back to the bank at half price.                             | Must Have |
+| FR-305 | Players can mortgage/unmortgage properties with correct interest calculation.          | Must Have |
 
 ### 5.4 Trading
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| FR-401 | Players can propose trades involving properties, cash, and Get Out of Jail Free cards. | Must Have |
-| FR-402 | The receiving player can accept, reject, or counter-offer a trade. | Must Have |
-| FR-403 | Trade proposals are visible to all players for transparency. | Should Have |
-| FR-404 | Trade history log within the game session. | Nice to Have |
+| ID     | Requirement                                                                            | Priority     |
+| ------ | -------------------------------------------------------------------------------------- | ------------ |
+| FR-401 | Players can propose trades involving properties, cash, and Get Out of Jail Free cards. | Must Have    |
+| FR-402 | The receiving player can accept, reject, or counter-offer a trade.                     | Must Have    |
+| FR-403 | Trade proposals are visible to all players for transparency.                           | Should Have  |
+| FR-404 | Trade history log within the game session.                                             | Nice to Have |
 
 ### 5.5 Bankruptcy & Endgame
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| FR-501 | Automatic bankruptcy detection when a player cannot cover a debt. | Must Have |
-| FR-502 | Asset transfer to creditor (player) or auction (bank) upon bankruptcy. | Must Have |
-| FR-503 | Eliminated players can continue to spectate the game. | Should Have |
-| FR-504 | Victory screen with final standings, stats, and net worth breakdown. | Must Have |
-| FR-505 | Optional timed game mode with wealth-based winner determination. | Nice to Have |
+| ID     | Requirement                                                            | Priority     |
+| ------ | ---------------------------------------------------------------------- | ------------ |
+| FR-501 | Automatic bankruptcy detection when a player cannot cover a debt.      | Must Have    |
+| FR-502 | Asset transfer to creditor (player) or auction (bank) upon bankruptcy. | Must Have    |
+| FR-503 | Eliminated players can continue to spectate the game.                  | Should Have  |
+| FR-504 | Victory screen with final standings, stats, and net worth breakdown.   | Must Have    |
+| FR-505 | Optional timed game mode with wealth-based winner determination.       | Nice to Have |
 
 ### 5.6 Social & Communication
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| FR-601 | In-game text chat for all players. | Should Have |
-| FR-602 | Emoji reactions and quick-chat expressions. | Nice to Have |
-| FR-603 | Turn notifications and activity feed showing key game events. | Must Have |
+| ID     | Requirement                                                   | Priority     |
+| ------ | ------------------------------------------------------------- | ------------ |
+| FR-601 | In-game text chat for all players.                            | Should Have  |
+| FR-602 | Emoji reactions and quick-chat expressions.                   | Nice to Have |
+| FR-603 | Turn notifications and activity feed showing key game events. | Must Have    |
 
 ---
 
@@ -241,14 +241,14 @@ Each deck contains 16 cards with effects ranging from cash awards and penalties 
 
 The application follows a client–server architecture with real-time communication via WebSockets.
 
-| Layer | Technology (Suggested) | Responsibility |
-|-------|----------------------|----------------|
-| Frontend | React / TypeScript | Game UI, board rendering, animations, player interactions |
-| Real-Time Layer | WebSocket (Socket.IO or native WS) | Bi-directional event streaming between client and server |
-| Game Server | Node.js / TypeScript | Authoritative game logic, state management, turn validation |
-| State Store | Redis | Fast in-memory game state persistence and pub/sub for scaling |
-| Database | PostgreSQL | User accounts (future), game history, leaderboards (future) |
-| Hosting | Cloud (AWS / GCP / Vercel) | Container orchestration, CDN for static assets |
+| Layer           | Technology (Suggested)             | Responsibility                                                |
+| --------------- | ---------------------------------- | ------------------------------------------------------------- |
+| Frontend        | React / TypeScript                 | Game UI, board rendering, animations, player interactions     |
+| Real-Time Layer | WebSocket (Socket.IO or native WS) | Bi-directional event streaming between client and server      |
+| Game Server     | Node.js / TypeScript               | Authoritative game logic, state management, turn validation   |
+| State Store     | Redis                              | Fast in-memory game state persistence and pub/sub for scaling |
+| Database        | PostgreSQL                         | User accounts (future), game history, leaderboards (future)   |
+| Hosting         | Cloud (AWS / GCP / Vercel)         | Container orchestration, CDN for static assets                |
 
 ### 7.2 Game Engine Design
 
@@ -261,14 +261,14 @@ The game engine should be designed with modularity as a core principle to suppor
 
 ### 7.3 Data Model (Core Entities)
 
-| Entity | Key Attributes |
-|--------|---------------|
-| Game | gameId, status, players[], currentTurn, boardConfig, settings, createdAt |
-| Player | playerId, name, token, cash, position, properties[], jailStatus, isActive |
-| Property | spaceId, name, type, colorGroup, cost, rentTiers[], mortgaged, owner, houses |
-| Card | cardId, deck (Chance/Community Chest), text, effect (action descriptor) |
-| TradeOffer | tradeId, proposer, recipient, offeredItems, requestedItems, status |
-| GameEvent | eventId, gameId, type, payload, timestamp |
+| Entity     | Key Attributes                                                               |
+| ---------- | ---------------------------------------------------------------------------- |
+| Game       | gameId, status, players[], currentTurn, boardConfig, settings, createdAt     |
+| Player     | playerId, name, token, cash, position, properties[], jailStatus, isActive    |
+| Property   | spaceId, name, type, colorGroup, cost, rentTiers[], mortgaged, owner, houses |
+| Card       | cardId, deck (Chance/Community Chest), text, effect (action descriptor)      |
+| TradeOffer | tradeId, proposer, recipient, offeredItems, requestedItems, status           |
+| GameEvent  | eventId, gameId, type, payload, timestamp                                    |
 
 ---
 
@@ -306,46 +306,46 @@ The UI should evoke the classic Monopoly aesthetic while feeling modern and clea
 
 The following features are out of scope for v1 but are anticipated for future releases. The architecture should accommodate these without major refactoring.
 
-| Phase | Feature | Description |
-|-------|---------|-------------|
-| Phase 2 | AI Opponents | Computer-controlled players with configurable difficulty levels. |
-| Phase 2 | Custom House Rules | Toggle popular house rules (Free Parking jackpot, no auctions, double salary on Go landing, etc.). |
-| Phase 2 | Game Replay & History | Ability to replay completed games turn by turn and view stats. |
-| Phase 3 | Custom Board Variants | User-created or pre-built alternative boards (themed cities, fantasy, sci-fi, etc.). |
-| Phase 3 | Custom Card Decks | Alternative Chance/Community Chest decks with new effects. |
-| Phase 3 | Speed Monopoly | Timed turns and accelerated gameplay for shorter sessions. |
-| Phase 4 | Accounts & Profiles | User registration, persistent profiles, avatars, and friend lists. |
-| Phase 4 | Leaderboards & Achievements | Global and friend leaderboards, unlockable achievements. |
-| Phase 4 | Spectator Mode | Public game links allowing non-players to watch live games. |
-| Phase 5 | Tournament Mode | Structured multi-game tournaments with brackets and seeding. |
-| Phase 5 | Mobile-Optimized UI | Fully responsive design optimized for phone-sized screens. |
-| Phase 5 | Voice Chat Integration | Optional in-game voice chat for social play. |
+| Phase   | Feature                     | Description                                                                                        |
+| ------- | --------------------------- | -------------------------------------------------------------------------------------------------- |
+| Phase 2 | AI Opponents                | Computer-controlled players with configurable difficulty levels.                                   |
+| Phase 2 | Custom House Rules          | Toggle popular house rules (Free Parking jackpot, no auctions, double salary on Go landing, etc.). |
+| Phase 2 | Game Replay & History       | Ability to replay completed games turn by turn and view stats.                                     |
+| Phase 3 | Custom Board Variants       | User-created or pre-built alternative boards (themed cities, fantasy, sci-fi, etc.).               |
+| Phase 3 | Custom Card Decks           | Alternative Chance/Community Chest decks with new effects.                                         |
+| Phase 3 | Speed Monopoly              | Timed turns and accelerated gameplay for shorter sessions.                                         |
+| Phase 4 | Accounts & Profiles         | User registration, persistent profiles, avatars, and friend lists.                                 |
+| Phase 4 | Leaderboards & Achievements | Global and friend leaderboards, unlockable achievements.                                           |
+| Phase 4 | Spectator Mode              | Public game links allowing non-players to watch live games.                                        |
+| Phase 5 | Tournament Mode             | Structured multi-game tournaments with brackets and seeding.                                       |
+| Phase 5 | Mobile-Optimized UI         | Fully responsive design optimized for phone-sized screens.                                         |
+| Phase 5 | Voice Chat Integration      | Optional in-game voice chat for social play.                                                       |
 
 ---
 
 ## 10. Success Metrics
 
-| Metric | Target | Measurement Method |
-|--------|--------|--------------------|
-| Game Completion Rate | ≥70% of started games reach a winner | Server logs (game status tracking) |
-| Average Latency | <200ms for game state updates | Server-side performance monitoring |
-| Reconnection Success | ≥90% of disconnected players rejoin within grace period | WebSocket reconnection logs |
-| Player Satisfaction | ≥4.0/5.0 average rating | In-game feedback prompt post-game |
-| Concurrent Games | Support 100+ simultaneous game rooms | Load testing |
-| Browser Compatibility | Zero critical bugs on supported browsers | Cross-browser QA testing |
+| Metric                | Target                                                  | Measurement Method                 |
+| --------------------- | ------------------------------------------------------- | ---------------------------------- |
+| Game Completion Rate  | ≥70% of started games reach a winner                    | Server logs (game status tracking) |
+| Average Latency       | <200ms for game state updates                           | Server-side performance monitoring |
+| Reconnection Success  | ≥90% of disconnected players rejoin within grace period | WebSocket reconnection logs        |
+| Player Satisfaction   | ≥4.0/5.0 average rating                                 | In-game feedback prompt post-game  |
+| Concurrent Games      | Support 100+ simultaneous game rooms                    | Load testing                       |
+| Browser Compatibility | Zero critical bugs on supported browsers                | Cross-browser QA testing           |
 
 ---
 
 ## 11. Risks & Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Player disconnections during active games | High | High | Grace period with auto-reconnect; game state fully server-persisted. |
-| Cheating via client manipulation | High | Medium | Server-authoritative logic; client cannot modify game state directly. |
-| Long game sessions causing fatigue | Medium | High | Implement optional timed mode; save/resume functionality for future release. |
-| Intellectual property concerns (Monopoly branding) | High | Medium | Use original art and avoid trademarked names. Consult legal counsel. |
-| Scalability bottlenecks under high load | Medium | Low | Stateless server design; Redis for state; horizontal scaling via containers. |
-| Complex rule edge cases causing bugs | Medium | High | Comprehensive rule unit tests; reference official rulebook; community QA. |
+| Risk                                               | Impact | Likelihood | Mitigation                                                                   |
+| -------------------------------------------------- | ------ | ---------- | ---------------------------------------------------------------------------- |
+| Player disconnections during active games          | High   | High       | Grace period with auto-reconnect; game state fully server-persisted.         |
+| Cheating via client manipulation                   | High   | Medium     | Server-authoritative logic; client cannot modify game state directly.        |
+| Long game sessions causing fatigue                 | Medium | High       | Implement optional timed mode; save/resume functionality for future release. |
+| Intellectual property concerns (Monopoly branding) | High   | Medium     | Use original art and avoid trademarked names. Consult legal counsel.         |
+| Scalability bottlenecks under high load            | Medium | Low        | Stateless server design; Redis for state; horizontal scaling via containers. |
+| Complex rule edge cases causing bugs               | Medium | High       | Comprehensive rule unit tests; reference official rulebook; community QA.    |
 
 ---
 
@@ -364,14 +364,14 @@ The following features are out of scope for v1 but are anticipated for future re
 
 ### 13.1 Glossary
 
-| Term | Definition |
-|------|-----------|
-| Monopoly | Owning all properties within a single color group, enabling building and doubling base rent. |
-| Mortgage | Turning a property face-down to receive half its value from the bank; no rent is collected while mortgaged. |
-| Even Build Rule | Requirement that houses be distributed evenly across a color set; no property can be more than 1 house ahead. |
-| Housing Shortage | When the bank's supply of houses (32) or hotels (12) is depleted, preventing further building. |
-| Server-Authoritative | Design pattern where the server is the single source of truth for game state; clients render but do not control logic. |
-| Finite State Machine (FSM) | A computational model where the game turn transitions through defined states, ensuring valid action sequences. |
+| Term                       | Definition                                                                                                             |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Monopoly                   | Owning all properties within a single color group, enabling building and doubling base rent.                           |
+| Mortgage                   | Turning a property face-down to receive half its value from the bank; no rent is collected while mortgaged.            |
+| Even Build Rule            | Requirement that houses be distributed evenly across a color set; no property can be more than 1 house ahead.          |
+| Housing Shortage           | When the bank's supply of houses (32) or hotels (12) is depleted, preventing further building.                         |
+| Server-Authoritative       | Design pattern where the server is the single source of truth for game state; clients render but do not control logic. |
+| Finite State Machine (FSM) | A computational model where the game turn transitions through defined states, ensuring valid action sequences.         |
 
 ### 13.2 Reference Documents
 
