@@ -60,6 +60,12 @@ export function PixiBoard({
     new Map(),
   );
   const prevPlayersRef = useRef<Map<string, number>>(new Map());
+  const animFrameRef = useRef<number>(0);
+  const prevRenderStateRef = useRef('');
+
+  // Keep latest props in a ref so drawBoard can access current values during animation
+  const stateRef = useRef({ spaces, players, properties, hoveredSpace, boardSize });
+  stateRef.current = { spaces, players, properties, hoveredSpace, boardSize };
 
   // Responsive sizing
   useEffect(() => {
@@ -76,22 +82,6 @@ export function PixiBoard({
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
-
-  // Track player position changes for animation
-  useEffect(() => {
-    const prevPositions = prevPlayersRef.current;
-    for (const player of players) {
-      const prev = prevPositions.get(player.id);
-      if (prev !== undefined && prev !== player.position) {
-        animatingTokensRef.current.set(player.id, {
-          from: prev,
-          to: player.position,
-          progress: 0,
-        });
-      }
-      prevPositions.set(player.id, player.position);
-    }
-  }, [players]);
 
   // Find space at given canvas coordinates
   const findSpaceAt = useCallback(
@@ -169,13 +159,15 @@ export function PixiBoard({
     setHoveredSpace(null);
   }, []);
 
-  // Main render — only re-render when data actually changes
-  useEffect(() => {
+  // Draw the entire board — reads latest props from stateRef
+  const drawBoard = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const { spaces, players, properties, hoveredSpace, boardSize } = stateRef.current;
 
     // Determine device pixel ratio for crisp rendering on high-DPI screens
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -215,10 +207,12 @@ export function PixiBoard({
       drawSpace(ctx, space, pos, i, properties, hoveredSpace === i);
     }
 
-    // Draw player tokens
+    // Draw player tokens — skip tokens that are currently animating
+    const animatingIds = new Set(animatingTokensRef.current.keys());
     const playersByPosition = new Map<number, Player[]>();
     for (const player of players) {
       if (player.isBankrupt) continue;
+      if (animatingIds.has(player.id)) continue;
       const list = playersByPosition.get(player.position) || [];
       list.push(player);
       playersByPosition.set(player.position, list);
@@ -264,6 +258,23 @@ export function PixiBoard({
       }
     }
 
+    // Draw animating tokens at interpolated positions
+    for (const [playerId, anim] of animatingTokensRef.current) {
+      const player = players.find((p) => p.id === playerId);
+      if (!player || player.isBankrupt) continue;
+      const fromPos = positions[anim.from];
+      const toPos = positions[anim.to];
+      if (!fromPos || !toPos) continue;
+
+      const t = easeOutCubic(anim.progress);
+      const fromCenter = { x: fromPos.x + fromPos.width / 2, y: fromPos.y + fromPos.height / 2 };
+      const toCenter = { x: toPos.x + toPos.width / 2, y: toPos.y + toPos.height / 2 };
+      const x = fromCenter.x + (toCenter.x - fromCenter.x) * t;
+      const y = fromCenter.y + (toCenter.y - fromCenter.y) * t;
+
+      drawToken(ctx, player, x, y, boardSize);
+    }
+
     // Draw houses/hotels
     for (const prop of properties) {
       if (prop.houses > 0 && prop.spaceId < positions.length) {
@@ -300,7 +311,74 @@ export function PixiBoard({
         ctx.restore();
       }
     }
-  }, [boardSize, spaces, players, properties, hoveredSpace]);
+  }, []);
+
+  // Track player position changes and start animation loop
+  useEffect(() => {
+    const prevPositions = prevPlayersRef.current;
+    let hasNewAnimations = false;
+    for (const player of players) {
+      const prev = prevPositions.get(player.id);
+      if (prev !== undefined && prev !== player.position) {
+        animatingTokensRef.current.set(player.id, {
+          from: prev,
+          to: player.position,
+          progress: 0,
+        });
+        hasNewAnimations = true;
+      }
+      prevPositions.set(player.id, player.position);
+    }
+
+    // Start requestAnimationFrame loop only while animations are active
+    if (hasNewAnimations && !animFrameRef.current) {
+      const animate = () => {
+        const animMap = animatingTokensRef.current;
+        const completed: string[] = [];
+        for (const [id, anim] of animMap) {
+          anim.progress = Math.min(anim.progress + 0.05, 1);
+          if (anim.progress >= 1) completed.push(id);
+        }
+        for (const id of completed) animMap.delete(id);
+
+        drawBoard();
+
+        if (animMap.size > 0) {
+          animFrameRef.current = requestAnimationFrame(animate);
+        } else {
+          // Animation complete — stop the loop (no idle redraws)
+          animFrameRef.current = 0;
+        }
+      };
+      animFrameRef.current = requestAnimationFrame(animate);
+    }
+  }, [players, drawBoard]);
+
+  // Main render with dirty-checking — only redraws when relevant state actually changes
+  useEffect(() => {
+    const playersKey = players
+      .map((p) => `${p.id}:${p.position}:${p.isBankrupt}:${p.jailStatus?.inJail}:${p.token}`)
+      .join('|');
+    const propsKey = properties
+      .map((p) => `${p.spaceId}:${p.ownerId || ''}:${p.houses}:${p.mortgaged}`)
+      .join('|');
+    const stateKey = `${boardSize}:${hoveredSpace}:${playersKey}:${propsKey}`;
+
+    if (stateKey === prevRenderStateRef.current) return;
+    prevRenderStateRef.current = stateKey;
+
+    // If animation loop is already running, it handles drawing
+    if (animFrameRef.current) return;
+
+    drawBoard();
+  }, [boardSize, spaces, players, properties, hoveredSpace, drawBoard]);
+
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, []);
 
   return (
     <div
@@ -320,6 +398,10 @@ export function PixiBoard({
       />
     </div>
   );
+}
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 function drawSpace(
