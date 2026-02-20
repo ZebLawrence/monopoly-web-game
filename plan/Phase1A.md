@@ -1,0 +1,197 @@
+# Phase 1A: Game Engine (Shared Logic)
+
+Builds the server-authoritative game engine as a pure TypeScript module with no I/O dependencies. This is the heart of the game and runs in `/shared` so both client (for prediction) and server (for authority) can use it.
+
+**Depends on:** Phase 0
+**Parallel with:** Phase 1B
+**Tasks:** 136
+
+---
+
+### Step 1A.1 — Game State Manager
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S1.T1 | Implement `createInitialGameState(settings, players)` → returns a valid `GameState` with players at position 0, starting cash, empty properties | Test: 2-player game created; both players have $1500, position 0, empty property arrays |
+| P1A.S1.T2 | Implement `createInitialGameState` for 3–6 players | Test: create games with 3, 4, 5, 6 players; all have correct starting state |
+| P1A.S1.T3 | Implement `getActivePlayer(state)` → returns the player whose turn it is | Test: create state with 3 players, currentPlayerIndex=1; function returns player at index 1 |
+| P1A.S1.T4 | Implement `getPlayerById(state, playerId)` → returns the player or undefined | Test: find existing player returns correct player; non-existent ID returns undefined |
+| P1A.S1.T5 | Implement `getSpaceByPosition(state, position)` → returns the Space at that board position | Test: position 0 returns Go; position 39 returns Boardwalk |
+| P1A.S1.T6 | Implement `getPropertiesOwnedBy(state, playerId)` → returns array of properties owned by that player | Test: set up state with player owning 3 properties; function returns exactly those 3 |
+| P1A.S1.T7 | Implement `isGameOver(state)` → returns true when only 1 active player remains | Test: state with 2 active players returns false; state with 1 active returns true |
+| P1A.S1.T8 | Implement `serializeGameState(state)` → JSON string and `deserializeGameState(json)` → GameState | Test: serialize a state, deserialize it, deep-equal the original |
+
+### Step 1A.2 — Turn State Machine
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S2.T1 | Implement `TurnStateMachine` class with `currentState` and `transition(action)` method | Test: machine starts in `WaitingForRoll`; calling `transition` with invalid action throws error |
+| P1A.S2.T2 | Define valid transitions: `WaitingForRoll` → `Rolling` (on RollDice action) | Test: machine in WaitingForRoll transitions to Rolling on RollDice; rejects BuyProperty |
+| P1A.S2.T3 | Define transition: `Rolling` → `Resolving` (automatic after dice result generated) | Test: machine transitions from Rolling to Resolving |
+| P1A.S2.T4 | Define transition: `Resolving` → `AwaitingBuyDecision` (when landing on unowned property) | Test: resolving with unowned property context transitions to AwaitingBuyDecision |
+| P1A.S2.T5 | Define transition: `AwaitingBuyDecision` → `Auction` (on decline) or `PlayerAction` (on buy) | Test: decline transitions to Auction; buy transitions to PlayerAction |
+| P1A.S2.T6 | Define transition: `Auction` → `PlayerAction` (when auction completes) | Test: auction complete transitions to PlayerAction |
+| P1A.S2.T7 | Define transition: `Resolving` → `PlayerAction` (when landing on space that requires no decision, e.g., owned property, tax, free parking) | Test: resolving on owned property goes to PlayerAction |
+| P1A.S2.T8 | Define transition: `PlayerAction` → `EndTurn` (on EndTurn action) | Test: EndTurn action in PlayerAction state transitions to EndTurn |
+| P1A.S2.T9 | Define transition: `EndTurn` → `WaitingForRoll` (advances to next player) | Test: EndTurn transitions to WaitingForRoll; active player index advances |
+| P1A.S2.T10 | Define transition: `PlayerAction` → `WaitingForRoll` (when doubles were rolled — extra turn) | Test: if doubles were rolled, EndTurn transitions to WaitingForRoll for SAME player |
+| P1A.S2.T11 | Implement `getValidActions(state)` → returns list of action types legal in current turn state | Test: WaitingForRoll returns [RollDice]; PlayerAction returns [BuildHouse, MortgageProperty, ProposeTrade, EndTurn, ...] |
+
+### Step 1A.3 — Dice & Movement
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S3.T1 | Implement `rollDice()` → returns `{ die1: number, die2: number, total: number, isDoubles: boolean }` | Test: call 1000 times; all die values 1–6; total = die1+die2; isDoubles correct |
+| P1A.S3.T2 | Implement `rollDice` with injectable RNG for deterministic testing | Test: with seeded RNG, rollDice returns predictable results |
+| P1A.S3.T3 | Implement `calculateNewPosition(currentPosition, diceTotal)` → wraps around 40 spaces | Test: position 38 + roll 4 = position 2; position 0 + roll 7 = position 7 |
+| P1A.S3.T4 | Implement `didPassGo(oldPosition, newPosition)` → returns true if player passed or landed on Go | Test: old=38, new=2 → true; old=5, new=10 → false; old=0, new=0 → false (landing on Go from Go is not passing) |
+| P1A.S3.T5 | Implement `applyMovement(state, playerId, diceResult)` → updates player position, awards $200 if passed Go, returns new state | Test: player at pos 35, rolls 7 → position 2, cash increased by $200 |
+| P1A.S3.T6 | Implement doubles tracking: `state.consecutiveDoubles` counter increments on doubles, resets on non-doubles | Test: roll doubles 2x → counter is 2; roll non-doubles → counter resets to 0 |
+| P1A.S3.T7 | Implement three-consecutive-doubles sends player to Jail (position 10, jailStatus = inJail) | Test: simulate 3 doubles in a row; player ends at position 10 with inJail status |
+
+### Step 1A.4 — Space Resolution Engine
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S4.T1 | Implement `resolveSpace(state, playerId, diceResult)` dispatcher that routes to handler based on space type | Test: player lands on a property space → returns a resolution with type 'property'; lands on tax → type 'tax' |
+| P1A.S4.T2 | Implement unowned property resolution → returns `AwaitingBuyDecision` with property details | Test: player lands on unowned Baltic Ave → resolution contains property info and buy/auction options |
+| P1A.S4.T3 | Implement owned property resolution → calculates base rent for a street with no monopoly | Test: player lands on Baltic (owned by opponent, no monopoly, 0 houses) → rent is $4 |
+| P1A.S4.T4 | Implement monopoly rent calculation → doubles base rent when owner has all properties in color group | Test: opponent owns both Baltic and Mediterranean (no houses) → rent on Baltic is $8 |
+| P1A.S4.T5 | Implement house/hotel rent calculation → returns correct rent tier based on house count | Test: Baltic with 1 house → $20; 2 houses → $60; 3 → $180; 4 → $320; hotel → $450 |
+| P1A.S4.T6 | Implement mortgaged property resolution → no rent charged | Test: player lands on mortgaged property → rent is $0, no cash deducted |
+| P1A.S4.T7 | Implement railroad rent calculation: $25 × 2^(railroadsOwned - 1) | Test: 1 railroad → $25; 2 → $50; 3 → $100; 4 → $200 |
+| P1A.S4.T8 | Implement utility rent calculation: 1 utility owned → dice × 4; 2 utilities → dice × 10 | Test: dice total 8, 1 utility → $32; dice total 8, 2 utilities → $80 |
+| P1A.S4.T9 | Implement Income Tax resolution → deducts $200 from player | Test: player with $1500 lands on Income Tax → cash becomes $1300 |
+| P1A.S4.T10 | Implement Luxury Tax resolution → deducts $100 from player | Test: player with $1500 lands on Luxury Tax → cash becomes $1400 |
+| P1A.S4.T11 | Implement Go To Jail resolution → sets player position to 10, jailStatus to inJail, does NOT collect $200 | Test: player at pos 27 lands on Go To Jail (pos 30) → position is 10, no $200 awarded, jailStatus is inJail |
+| P1A.S4.T12 | Implement Chance space resolution → triggers card draw | Test: player lands on Chance → resolution type is 'drawCard' with deck='chance' |
+| P1A.S4.T13 | Implement Community Chest space resolution → triggers card draw | Test: player lands on Community Chest → resolution type is 'drawCard' with deck='communityChest' |
+| P1A.S4.T14 | Implement Free Parking resolution → no-op | Test: player lands on Free Parking → no state change (same cash, same position) |
+| P1A.S4.T15 | Implement Just Visiting resolution → no-op | Test: player lands on position 10 while NOT in jail → no state change |
+| P1A.S4.T16 | Implement Go resolution (landing directly) → collects $200 | Test: player lands exactly on Go → $200 awarded |
+| P1A.S4.T17 | Implement landing on own property → no rent charged | Test: player lands on their own property → no cash change |
+| P1A.S4.T18 | Validate rent tiers for ALL 22 street properties — spot-check one property per color group against official rent table: Mediterranean (Brown) base $2, Oriental (LightBlue) base $6, St. Charles (Pink) base $10, St. James (Orange) base $14, Kentucky (Red) base $18, Atlantic (Yellow) base $22, Pacific (Green) base $26, Park Place (DarkBlue) base $35 | Test: for each listed property, verify base rent, 1-house rent, and hotel rent match expected values |
+| P1A.S4.T19 | Validate Boardwalk rent tiers specifically: base $50, 1 house $200, 2 houses $600, 3 houses $1400, 4 houses $1700, hotel $2000 | Test: all 6 rent tiers for Boardwalk return correct amounts |
+| P1A.S4.T20 | Validate railroad mortgage value ($100 each) and utility mortgage value ($75 each) used in mortgage/unmortgage calculations | Test: mortgage Reading Railroad → receive $100; mortgage Electric Company → receive $75 |
+
+### Step 1A.5 — Card System
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S5.T1 | Implement `createDeck(cardDefinitions)` → shuffled array of Card objects | Test: deck has 16 cards; order differs from input order (with non-trivial probability) |
+| P1A.S5.T2 | Implement `drawCard(state, deckName)` → returns top card, moves it to bottom of deck | Test: draw card; deck still has 16 cards; drawn card is now last in deck |
+| P1A.S5.T3 | Implement `drawCard` for GOOJF card → card is removed from deck and added to player's hand | Test: draw GOOJF; deck has 15 cards; player's cards array contains the GOOJF card |
+| P1A.S5.T4 | Implement card effect: "Collect $X" → adds cash to player | Test: "Bank pays you $200" → player cash increases by $200 |
+| P1A.S5.T5 | Implement card effect: "Pay $X" → deducts cash from player | Test: "Pay hospital fees of $100" → player cash decreases by $100 |
+| P1A.S5.T6 | Implement card effect: "Advance to X" (specific space) → moves player to that position | Test: "Advance to Go" from position 15 → player at position 0, collects $200 for passing Go |
+| P1A.S5.T7 | Implement card effect: "Advance to X" where X is behind current position → pass Go and collect $200 | Test: "Advance to St. Charles Place" (pos 11) from position 30 → player at pos 11, $200 awarded |
+| P1A.S5.T8 | Implement card effect: "Go to Jail" → player sent to jail | Test: "Go directly to Jail" → position 10, jailStatus inJail, no $200 |
+| P1A.S5.T9 | Implement card effect: "Go back 3 spaces" | Test: player at position 20 → moves to position 17; at position 2 → moves to position 39 (wraps) |
+| P1A.S5.T10 | Implement card effect: "Collect $X from every player" | Test: 4-player game, card says collect $50 each → player gains $150, other 3 players each lose $50 |
+| P1A.S5.T11 | Implement card effect: "Pay each player $X" | Test: 4-player game, pay $50 each → player loses $150, other 3 players each gain $50 |
+| P1A.S5.T12 | Implement card effect: Chance "General repairs — pay $25 per house, $100 per hotel" | Test: player with 3 houses and 1 hotel → pays $175 ($75 + $100) |
+| P1A.S5.T12a | Implement card effect: Community Chest "Street repairs — pay $40 per house, $115 per hotel" (different rates than Chance) | Test: player with 3 houses and 1 hotel → pays $235 ($120 + $115) |
+| P1A.S5.T12b | Implement repairs card with zero buildings → pays $0 | Test: player with no buildings → pays nothing |
+| P1A.S5.T13 | Implement card effect: "Advance to nearest railroad, pay double rent" — nearest railroad calculation from ALL Chance positions | Test: from pos 7 → nearest is pos 15 (Pennsylvania RR); from pos 22 → nearest is pos 25 (B&O RR); from pos 36 → nearest is pos 5 (Reading RR, wraps around) |
+| P1A.S5.T13a | Implement "Advance to nearest railroad" — if railroad is UNOWNED, player may buy it at face value | Test: nearest railroad is unowned → player gets buy/auction choice |
+| P1A.S5.T13b | Implement "Advance to nearest railroad" — if railroad is OWNED, pay DOUBLE the normal railroad rent | Test: owner has 2 railroads → normal rent $50 → card rent $100 |
+| P1A.S5.T13c | Validate that the Chance deck contains exactly TWO "Advance to nearest Railroad" cards | Test: filter chance deck by effect type 'advanceNearestRailroad' → count is 2 |
+| P1A.S5.T14 | Implement card effect: "Advance to nearest utility, pay 10× dice" — nearest utility calculation from ALL Chance positions | Test: from pos 7 → nearest is pos 12 (Electric Co); from pos 22 → nearest is pos 28 (Water Works); from pos 36 → nearest is pos 12 (Electric Co, wraps around) |
+| P1A.S5.T14a | Implement "Advance to nearest utility" — if utility is UNOWNED, player may buy it at face value | Test: nearest utility is unowned → player gets buy/auction choice |
+| P1A.S5.T14b | Implement "Advance to nearest utility" — if utility is OWNED, pay 10× dice roll (not the normal 4× or 10× based on ownership count) | Test: roll 8 → pay $80 regardless of how many utilities owner has |
+| P1A.S5.T15 | Implement card effect: "Advance to Boardwalk" → moves to position 39 | Test: from any Chance position → player moves to pos 39; no Go passing (all Chance spaces are before pos 39 or at 36 which doesn't pass Go) |
+| P1A.S5.T16 | Implement card effect: "Take a trip to Reading Railroad" → move to position 5, collect $200 if passing Go | Test: from Chance pos 36 → move to pos 5, pass Go → collect $200; from Chance pos 7 → move to pos 5 does NOT pass Go from pos 7 (would need to be after pos 5) — actually from pos 7 going forward doesn't reach pos 5 without passing Go, so this only applies from pos 22 or 36 |
+| P1A.S5.T17 | Implement card effect: "Speeding fine $15" → deducts $15 from player | Test: player cash decreases by exactly $15 |
+| P1A.S5.T18 | Implement card effect: "Building loan matures, collect $150" → adds $150 to player | Test: player cash increases by exactly $150 |
+| P1A.S5.T19 | Implement both GOOJF cards can coexist — player can hold one from Chance AND one from Community Chest simultaneously | Test: draw GOOJF from Chance, then draw GOOJF from CC → player holds 2 cards; using one returns it to correct deck |
+| P1A.S5.T20 | Implement `returnCardToDeck(state, card, deckName)` → places card at bottom of deck | Test: return a non-GOOJF card; it appears at the bottom of the deck |
+| P1A.S5.T21 | Implement card-triggered movement → after moving to target space, RESOLVE that space (may trigger buy/rent/tax/another card draw) | Test: "Advance to Illinois Ave" and Illinois is owned by opponent → player pays rent after moving |
+
+### Step 1A.6 — Property Management Logic
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S6.T1 | Implement `buyProperty(state, playerId, spaceId)` → transfers property ownership, deducts cost from player | Test: player buys Baltic ($60) → cash decreases by $60, property owner is now playerId |
+| P1A.S6.T2 | Implement `buyProperty` validation → rejects if property already owned, player can't afford, or not on that space | Test: attempt to buy owned property throws; attempt with insufficient funds throws |
+| P1A.S6.T3 | Implement `startAuction(state, spaceId)` → creates auction state with starting bid $0; ALL active players eligible including the player who declined to buy | Test: auction state created with correct property, all active players (including decliner) eligible, starting bid 0 |
+| P1A.S6.T4 | Implement `placeBid(state, playerId, amount)` → records bid if valid (> current high bid, ≤ player's cash) | Test: bid $50 when current is $30 → accepted; bid $20 when current is $30 → rejected |
+| P1A.S6.T5 | Implement `placeBid` validation → player can only bid what they can afford | Test: player with $100 bids $150 → rejected |
+| P1A.S6.T6 | Implement `passBid(state, playerId)` → marks player as passed in auction | Test: player passes → no longer eligible to bid; auction continues with remaining bidders |
+| P1A.S6.T7 | Implement auction resolution → last remaining bidder or highest bidder wins when all pass | Test: 3 players, 2 pass → remaining player wins at their last bid amount |
+| P1A.S6.T8 | Implement auction resolution → property transferred to winner, cash deducted | Test: winner gets property ownership; cash reduced by winning bid amount |
+| P1A.S6.T9 | Implement auction with no bids → property remains unowned | Test: all players pass immediately → property has no owner |
+| P1A.S6.T10 | Implement `hasMonopoly(state, playerId, colorGroup)` → checks if player owns all properties in that color group | Test: player owns Baltic + Mediterranean → hasMonopoly('brown') returns true; owns only Baltic → false |
+| P1A.S6.T11 | Implement `buildHouse(state, playerId, spaceId)` → adds a house to the property | Test: player owns brown monopoly, builds on Baltic → Baltic has 1 house; player cash reduced by house cost |
+| P1A.S6.T12 | Implement `buildHouse` validation → requires monopoly ownership | Test: attempt to build without monopoly → rejected |
+| P1A.S6.T13 | Implement even-build rule enforcement → can't build on property with more houses than another in same group | Test: Baltic has 1 house, Mediterranean has 0 → can't build on Baltic again; must build on Mediterranean first |
+| P1A.S6.T14 | Implement `buildHouse` max check → no more than 4 houses (5th = hotel upgrade) | Test: property with 4 houses → buildHouse upgrades to hotel (houses = 5 / isHotel flag) |
+| P1A.S6.T15 | Implement hotel building → requires 4 houses, converts to hotel, returns 4 houses to supply | Test: build hotel → property has hotel; house supply increases by 4; hotel supply decreases by 1 |
+| P1A.S6.T16 | Implement building supply tracking → 32 houses, 12 hotels | Test: initial state has 32 houses, 12 hotels; after building 3 houses → 29 remain |
+| P1A.S6.T17 | Implement building supply shortage → can't build if no houses/hotels remain | Test: set house supply to 0 → buildHouse rejected |
+| P1A.S6.T17a | Implement building auction — when multiple players want to build and house/hotel supply is insufficient for all, the buildings must be auctioned off one at a time to the highest bidder | Test: 2 players both want to build, only 1 house left → house is auctioned; highest bidder gets to build |
+| P1A.S6.T18 | Implement `sellBuilding(state, playerId, spaceId)` → removes house/hotel, refunds half price | Test: sell 1 house on Baltic (house cost $50) → player gets $25, Baltic has 0 houses |
+| P1A.S6.T19 | Implement even-sell rule → can't sell if it would violate even distribution | Test: Baltic 2 houses, Mediterranean 1 house → can sell from Baltic; Baltic 1, Mediterranean 1 → can sell from either |
+| P1A.S6.T20 | Implement hotel downgrade → selling hotel returns to 4 houses (if supply available) | Test: sell hotel → property goes to 4 houses; house supply decreases by 4; hotel supply increases by 1 |
+| P1A.S6.T21 | Implement hotel downgrade blocked → can't sell hotel if not enough houses in supply | Test: house supply at 2 → can't downgrade hotel (needs 4 houses); error returned |
+| P1A.S6.T22 | Implement `mortgageProperty(state, playerId, spaceId)` → marks property mortgaged, gives player half value | Test: mortgage Baltic ($60 value) → player gets $30, property.mortgaged = true |
+| P1A.S6.T23 | Implement mortgage validation → can't mortgage if property has buildings in its color group | Test: Baltic has houses → mortgage rejected; must sell buildings first |
+| P1A.S6.T24 | Implement `unmortgageProperty(state, playerId, spaceId)` → pays mortgage + 10% interest, unmortgages | Test: unmortgage Baltic (mortgage value $30) → player pays $33 ($30 + $3 interest), property.mortgaged = false |
+| P1A.S6.T25 | Implement unmortgage validation → player must have enough cash | Test: player with $20 tries to unmortgage $33 cost → rejected |
+
+### Step 1A.7 — Trading Logic
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S7.T1 | Implement `createTradeOffer(state, proposerId, recipientId, offer)` → creates a TradeOffer in pending status | Test: trade offer created with correct fields; status is 'pending' |
+| P1A.S7.T2 | Implement trade offer validation → proposer must own all offered properties; offered cash ≤ proposer's cash | Test: offering property not owned → rejected; offering more cash than available → rejected |
+| P1A.S7.T3 | Implement trade offer validation → recipient must own all requested properties | Test: requesting property not owned by recipient → rejected |
+| P1A.S7.T4 | Implement trade offer validation → can't trade properties that have buildings in their color group | Test: property in a color group with houses → trade rejected (must sell buildings first) |
+| P1A.S7.T5 | Implement `acceptTrade(state, tradeId)` → executes the asset swap atomically | Test: properties swap owners, cash transfers between players, GOOJF cards move |
+| P1A.S7.T6 | Implement trade execution → properties, cash, and GOOJF cards all transfer correctly | Test: complex trade with 2 properties, $200, and 1 GOOJF card → all assets in correct hands after |
+| P1A.S7.T7 | Implement `rejectTrade(state, tradeId)` → marks trade as rejected, no state change | Test: trade rejected; no property or cash changes; trade status = 'rejected' |
+| P1A.S7.T8 | Implement `counterTrade(state, tradeId, newOffer)` → creates a new trade offer with swapped roles | Test: counter-offer created with original recipient as new proposer; original trade marked 'countered' |
+
+### Step 1A.8 — Jail Logic
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S8.T1 | Implement `sendToJail(state, playerId)` → sets position to 10, jailStatus to inJail, resets doubles counter | Test: player at pos 30 → position 10, jailStatus='inJail', consecutiveDoubles=0 |
+| P1A.S8.T2 | Implement `sendToJail` does NOT award $200 even if "passing" Go | Test: player at pos 35 sent to jail (pos 10) → cash unchanged |
+| P1A.S8.T3 | Implement `payJailFine(state, playerId)` → deducts $50, sets jailStatus to free | Test: player pays $50 → cash reduced by $50, jailStatus='free', player can roll normally |
+| P1A.S8.T4 | Implement `payJailFine` validation → player must have $50 | Test: player with $30 tries to pay fine → rejected (or triggers bankruptcy flow) |
+| P1A.S8.T5 | Implement `useJailCard(state, playerId)` → removes GOOJF card from player, frees from jail, returns card to deck | Test: player uses GOOJF → card removed from hand, returned to correct deck, jailStatus='free' |
+| P1A.S8.T6 | Implement `useJailCard` validation → player must actually hold a GOOJF card | Test: player without GOOJF tries to use one → rejected |
+| P1A.S8.T7 | Implement jail roll for doubles → if doubles rolled, player exits jail and moves that amount | Test: player in jail rolls doubles (3,3) → jailStatus='free', moves 6 spaces from pos 10 |
+| P1A.S8.T8 | Implement jail roll failure → non-doubles, player stays in jail, turnsInJail increments | Test: player rolls (2,5) → stays at pos 10, turnsInJail increments |
+| P1A.S8.T9 | Implement forced jail exit after 3 failed rolls → pay $50 and move dice total | Test: turnsInJail=2, rolls non-doubles → forced to pay $50, moves dice total |
+
+### Step 1A.9 — Bankruptcy & Endgame
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S9.T1 | Implement `canPlayerAfford(state, playerId, amount)` → checks if player can pay with cash + potential liquidation value | Test: player with $100, 2 houses (sellable for $50 total), 1 mortgageable property ($30) → can afford $180 but not $181 |
+| P1A.S9.T2 | Implement `calculateLiquidationValue(state, playerId)` → total possible cash from selling buildings + mortgaging all properties | Test: player with houses worth $50 sell value and mortgage values of $60 → liquidation value = $110 |
+| P1A.S9.T3 | Implement `declareBankruptcy(state, playerId, creditorId)` → when creditor is a player, transfer all assets | Test: bankrupt player's properties transfer to creditor; creditor receives all cash and GOOJF cards |
+| P1A.S9.T4 | Implement bankruptcy asset transfer → mortgaged properties transfer still mortgaged; creditor must pay 10% interest or keep mortgaged | Test: mortgaged properties transfer to creditor with mortgaged flag; interest becomes due |
+| P1A.S9.T5 | Implement `declareBankruptcy(state, playerId, 'bank')` → when creditor is bank, all properties go up for auction | Test: bankrupt player's properties are queued for individual auctions; cash goes to bank (removed) |
+| P1A.S9.T6 | Implement player elimination → set isActive = false, remove from turn order | Test: eliminated player skipped in turn rotation; isActive = false |
+| P1A.S9.T7 | Implement win condition check → last active player wins | Test: 3 players, 2 eliminated → game status = 'completed', winner = remaining player |
+| P1A.S9.T8 | Implement timed game end → calculate net worth (cash + unmortgaged property values + building values) | Test: player with $500, 2 properties worth $200 each, 3 houses worth $50 each → net worth = $1050 |
+| P1A.S9.T9 | Implement timed game winner determination → player with highest net worth wins | Test: 3 active players with different net worths → correct player identified as winner |
+
+### Step 1A.10 — Event System
+
+| ID | Task | Test |
+|----|------|------|
+| P1A.S10.T1 | Implement `GameEventEmitter` class with `on(eventType, handler)` and `emit(event)` methods | Test: register handler for 'DiceRolled'; emit DiceRolled event → handler called with correct payload |
+| P1A.S10.T2 | Implement event generation in `applyMovement` → emits `PlayerMoved` event | Test: after movement, event log contains PlayerMoved with fromPosition, toPosition, playerId |
+| P1A.S10.T3 | Implement event generation in `buyProperty` → emits `PropertyPurchased` event | Test: after buying, event log contains PropertyPurchased with playerId, propertyId, price |
+| P1A.S10.T4 | Implement event generation for rent payment → emits `RentPaid` event | Test: after rent, event log contains RentPaid with payerId, receiverId, amount, propertyId |
+| P1A.S10.T5 | Implement event generation for card draw → emits `CardDrawn` event | Test: after drawing, event log contains CardDrawn with playerId, cardText, deck |
+| P1A.S10.T6 | Implement event generation for bankruptcy → emits `PlayerBankrupt` event | Test: after bankruptcy, event log contains PlayerBankrupt with playerId, creditorId |
+| P1A.S10.T7 | Implement event generation for trade → emits `TradeCompleted` event | Test: after trade, event log contains TradeCompleted with tradeId, both player IDs |
+| P1A.S10.T8 | Implement event generation for building → emits `BuildingPlaced` and `BuildingSold` events | Test: after building/selling, event log contains correct event with propertyId, buildingType |
+| P1A.S10.T9 | Implement `GameEventLog` — ordered append-only list of all events with timestamps | Test: play several actions; event log has correct order, all events timestamped |
+| P1A.S10.T10 | Implement `getEventsSince(state, timestamp)` → returns events after a given time (for late-joining spectators/reconnection) | Test: 10 events total, query since event 5's timestamp → returns events 6–10 |
+
+---
