@@ -255,7 +255,7 @@ export function HouseIndicator({ houses }: { houses: number }) {
   }
   return (
     <span className={styles.houseCount} data-testid="house-indicator">
-      {'&#127968;'.repeat(houses)} {houses} House{houses > 1 ? 's' : ''}
+      {'\u{1F3E0}'.repeat(houses)} {houses} House{houses > 1 ? 's' : ''}
     </span>
   );
 }
