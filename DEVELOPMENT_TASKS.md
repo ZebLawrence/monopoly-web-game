@@ -55,18 +55,28 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P0.S5.T1 | Define `SpaceType` enum and `Space` interface (id, name, type, position, colorGroup?, cost?, etc.) | TypeScript compiles; a test asserts that the enum has all expected space types (property, railroad, utility, tax, chance, chest, corner) |
 | P0.S5.T2 | Define `Player` interface (id, name, token, cash, position, properties, jailStatus, isActive, etc.) | TypeScript compiles; a test creates a valid player object matching the interface |
 | P0.S5.T3 | Define `Property` interface (spaceId, name, type, colorGroup, cost, rentTiers, mortgaged, ownerId, houses) | TypeScript compiles; a test validates that rentTiers is an array of the correct length |
-| P0.S5.T4 | Define `Card` interface (id, deck, text, effect) and `CardEffect` discriminated union (cash, move, jail, collectFromAll, repairs, goojf) | TypeScript compiles; a test creates one card of each effect type without type errors |
+| P0.S5.T4 | Define `Card` interface (id, deck, text, effect) and `CardEffect` discriminated union (cash, move, moveBack, jail, collectFromAll, payEachPlayer, repairs, advanceNearestRailroad, advanceNearestUtility, goojf) | TypeScript compiles; a test creates one card of each effect type without type errors (10 variants total) |
 | P0.S5.T5 | Define `GameState` interface (gameId, status, players, currentPlayerIndex, board, decks, turnState, settings, events) | TypeScript compiles; a test creates a minimal valid GameState object |
 | P0.S5.T6 | Define `GameSettings` interface (maxPlayers, startingCash, turnTimeLimit, etc.) with defaults | TypeScript compiles; a test validates default settings object has correct starting cash of $1500 |
 | P0.S5.T7 | Create `board.json` — the 40-space board layout with all property data, rent tiers, costs | JSON parses without error; a test validates exactly 40 spaces, 22 streets, 4 railroads, 2 utilities |
-| P0.S5.T8 | Create `chance-cards.json` — all 16 Chance card definitions with effect descriptors | JSON parses; test validates 16 cards, each with a valid `CardEffect` shape |
-| P0.S5.T9 | Create `community-chest-cards.json` — all 16 Community Chest card definitions | JSON parses; test validates 16 cards, each with a valid `CardEffect` shape |
-| P0.S5.T10 | Define `GameAction` discriminated union (RollDice, BuyProperty, AuctionBid, BuildHouse, MortgageProperty, ProposeTrade, AcceptTrade, PayJailFine, UseJailCard, EndTurn, etc.) | TypeScript compiles; a test creates one action of each type without type errors |
+| P0.S5.T7a | Validate `board.json` — all 40 spaces present by exact name and position: Pos 0 Go, 1 Mediterranean Ave, 2 Community Chest, 3 Baltic Ave, 4 Income Tax, 5 Reading Railroad, 6 Oriental Ave, 7 Chance, 8 Vermont Ave, 9 Connecticut Ave, 10 Jail/Just Visiting, 11 St. Charles Place, 12 Electric Company, 13 States Ave, 14 Virginia Ave, 15 Pennsylvania Railroad, 16 St. James Place, 17 Community Chest, 18 Tennessee Ave, 19 New York Ave, 20 Free Parking, 21 Kentucky Ave, 22 Chance, 23 Indiana Ave, 24 Illinois Ave, 25 B&O Railroad, 26 Atlantic Ave, 27 Ventnor Ave, 28 Water Works, 29 Marvin Gardens, 30 Go To Jail, 31 Pacific Ave, 32 North Carolina Ave, 33 Community Chest, 34 Pennsylvania Ave, 35 Short Line Railroad, 36 Chance, 37 Park Place, 38 Luxury Tax, 39 Boardwalk | Test: iterate all 40 positions; each matches expected name and type |
+| P0.S5.T7b | Validate `board.json` — all 8 color groups have correct properties and house costs: Brown (Mediterranean, Baltic; $50/house), Light Blue (Oriental, Vermont, Connecticut; $50/house), Pink (St. Charles, States, Virginia; $100/house), Orange (St. James, Tennessee, New York; $100/house), Red (Kentucky, Indiana, Illinois; $150/house), Yellow (Atlantic, Ventnor, Marvin Gardens; $150/house), Green (Pacific, N. Carolina, Pennsylvania; $200/house), Dark Blue (Park Place, Boardwalk; $200/house) | Test: for each color group, verify member count (brown/dark blue = 2, rest = 3) and house cost |
+| P0.S5.T7c | Validate `board.json` — all 22 street properties have correct rent tiers (base, 1 house, 2 houses, 3 houses, 4 houses, hotel) matching official Monopoly rent tables. Example spot checks: Mediterranean base $2/hotel $250, Boardwalk base $50/hotel $2000, Illinois Ave base $20/hotel $1100 | Test: assert every street property has exactly 6 rent tiers; spot-check at least one property per color group |
+| P0.S5.T7d | Validate `board.json` — mortgage values for all 28 properties: streets = half purchase price, railroads = $100 each, utilities = $75 each | Test: assert mortgage value = price/2 for all streets; railroads mortgage = $100; utilities mortgage = $75 |
+| P0.S5.T7e | Validate `board.json` — Chance spaces at exactly positions 7, 22, 36; Community Chest spaces at exactly positions 2, 17, 33 | Test: filter spaces by type 'chance' → positions [7, 22, 36]; filter by 'communityChest' → positions [2, 17, 33] |
+| P0.S5.T7f | Validate `board.json` — Tax spaces: Income Tax at position 4 ($200), Luxury Tax at position 38 ($100) | Test: position 4 is type 'tax' with amount $200; position 38 is type 'tax' with amount $100 |
+| P0.S5.T7g | Validate `board.json` — Railroad prices: all 4 railroads cost $200 (Reading pos 5, Pennsylvania pos 15, B&O pos 25, Short Line pos 35) | Test: all railroad-type spaces have cost $200 |
+| P0.S5.T7h | Validate `board.json` — Utility prices: Electric Company (pos 12) and Water Works (pos 28) both cost $150 | Test: all utility-type spaces have cost $150 |
+| P0.S5.T8 | Create `chance-cards.json` — all 16 Chance card definitions with effect descriptors including: Advance to Boardwalk, Advance to Go ($200), Advance to Illinois Ave, Advance to St. Charles Place, Advance to nearest Railroad (×2 — TWO copies of this card), Advance to nearest Utility, Bank pays dividend $50, Get Out of Jail Free, Go Back 3 Spaces, Go to Jail, General repairs ($25/house $100/hotel), Speeding fine $15, Take a trip to Reading Railroad, Elected Chairman pay each player $50, Building loan matures $150 | JSON parses; test validates exactly 16 cards; test validates 2 cards have 'advanceNearestRailroad' effect |
+| P0.S5.T9 | Create `community-chest-cards.json` — all 16 Community Chest card definitions including: Advance to Go, Bank error $200, Doctor's fee $50, Sale of stock $50, Get Out of Jail Free, Go to Jail, Holiday fund $100, Income tax refund $20, Birthday collect $10 from each player, Life insurance $100, Hospital fees $100, School fees $50, Consultancy fee $25, Street repairs ($40/house $115/hotel), Beauty contest $10, Inherit $100 | JSON parses; test validates exactly 16 cards; each with a valid `CardEffect` shape |
+| P0.S5.T10 | Define `GameAction` discriminated union (RollDice, BuyProperty, DeclineProperty, AuctionBid, AuctionPass, BuildHouse, BuildHotel, SellBuilding, MortgageProperty, UnmortgageProperty, ProposeTrade, AcceptTrade, RejectTrade, CounterTrade, PayJailFine, UseJailCard, RollForDoubles, EndTurn) | TypeScript compiles; a test creates one action of each type without type errors (18 action types total) |
 | P0.S5.T11 | Define Socket.IO event type contracts: `ClientToServerEvents` and `ServerToClientEvents` interfaces | TypeScript compiles; both interfaces have all expected event names with typed payloads |
 | P0.S5.T12 | Define `GameEvent` interface (id, gameId, type, payload, timestamp) and event type enum | TypeScript compiles; a test creates sample events of different types |
-| P0.S5.T13 | Define `TokenType` enum with classic Monopoly tokens (car, dog, hat, iron, ship, thimble, boot, wheelbarrow) | TypeScript compiles; test asserts at least 8 token types exist |
+| P0.S5.T13 | Define `TokenType` enum with classic Monopoly tokens: ScottieDog, TopHat, RaceCar, Boot, Thimble, Iron, Wheelbarrow, Battleship | TypeScript compiles; test asserts exactly 8 token types: scottieDog, topHat, raceCar, boot, thimble, iron, wheelbarrow, battleship |
 | P0.S5.T14 | Define `TurnState` enum (WaitingForRoll, Rolling, Resolving, AwaitingBuyDecision, Auction, PlayerAction, TradeNegotiation, EndTurn) | TypeScript compiles; test asserts all expected states are present |
 | P0.S5.T15 | Define `TradeOffer` interface (id, proposerId, recipientId, offeredProperties, offeredCash, offeredCards, requestedProperties, requestedCash, requestedCards, status) | TypeScript compiles; test creates a valid trade offer object |
+| P0.S5.T16 | Define `MoneyDenomination` type and starting cash breakdown constant: 2×$500, 4×$100, 1×$50, 1×$20, 2×$10, 1×$5, 5×$1 = $1,500 total. Denominations available in the game: $1, $5, $10, $20, $50, $100, $500 | Test: sum of starting cash breakdown equals $1500; all 7 denominations defined |
+| P0.S5.T17 | Define `TitleDeedData` interface (propertyId, name, colorGroup, cost, rentTiers, mortgageValue, houseCost, hotelCost) — represents the physical title deed card data for all 28 properties (22 streets + 4 railroads + 2 utilities) | TypeScript compiles; test validates 28 title deed entries exist |
 
 ---
 
@@ -134,6 +144,9 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P1A.S4.T15 | Implement Just Visiting resolution → no-op | Test: player lands on position 10 while NOT in jail → no state change |
 | P1A.S4.T16 | Implement Go resolution (landing directly) → collects $200 | Test: player lands exactly on Go → $200 awarded |
 | P1A.S4.T17 | Implement landing on own property → no rent charged | Test: player lands on their own property → no cash change |
+| P1A.S4.T18 | Validate rent tiers for ALL 22 street properties — spot-check one property per color group against official rent table: Mediterranean (Brown) base $2, Oriental (LightBlue) base $6, St. Charles (Pink) base $10, St. James (Orange) base $14, Kentucky (Red) base $18, Atlantic (Yellow) base $22, Pacific (Green) base $26, Park Place (DarkBlue) base $35 | Test: for each listed property, verify base rent, 1-house rent, and hotel rent match expected values |
+| P1A.S4.T19 | Validate Boardwalk rent tiers specifically: base $50, 1 house $200, 2 houses $600, 3 houses $1400, 4 houses $1700, hotel $2000 | Test: all 6 rent tiers for Boardwalk return correct amounts |
+| P1A.S4.T20 | Validate railroad mortgage value ($100 each) and utility mortgage value ($75 each) used in mortgage/unmortgage calculations | Test: mortgage Reading Railroad → receive $100; mortgage Electric Company → receive $75 |
 
 ### Step 1A.5 — Card System
 
@@ -150,10 +163,23 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P1A.S5.T9 | Implement card effect: "Go back 3 spaces" | Test: player at position 20 → moves to position 17; at position 2 → moves to position 39 (wraps) |
 | P1A.S5.T10 | Implement card effect: "Collect $X from every player" | Test: 4-player game, card says collect $50 each → player gains $150, other 3 players each lose $50 |
 | P1A.S5.T11 | Implement card effect: "Pay each player $X" | Test: 4-player game, pay $50 each → player loses $150, other 3 players each gain $50 |
-| P1A.S5.T12 | Implement card effect: "Repairs — pay $25 per house, $100 per hotel" | Test: player with 3 houses and 1 hotel → pays $175 ($75 + $100) |
-| P1A.S5.T13 | Implement card effect: "Advance to nearest railroad, pay double rent" | Test: player at Chance pos 7 → advances to pos 15 (railroad); rent calculation doubled |
-| P1A.S5.T14 | Implement card effect: "Advance to nearest utility, pay 10× dice" | Test: player at Chance pos 22 → advances to pos 28 (utility); rent is 10× dice roll |
-| P1A.S5.T15 | Implement `returnCardToDeck(state, card, deckName)` → places card at bottom of deck | Test: return a non-GOOJF card; it appears at the bottom of the deck |
+| P1A.S5.T12 | Implement card effect: Chance "General repairs — pay $25 per house, $100 per hotel" | Test: player with 3 houses and 1 hotel → pays $175 ($75 + $100) |
+| P1A.S5.T12a | Implement card effect: Community Chest "Street repairs — pay $40 per house, $115 per hotel" (different rates than Chance) | Test: player with 3 houses and 1 hotel → pays $235 ($120 + $115) |
+| P1A.S5.T12b | Implement repairs card with zero buildings → pays $0 | Test: player with no buildings → pays nothing |
+| P1A.S5.T13 | Implement card effect: "Advance to nearest railroad, pay double rent" — nearest railroad calculation from ALL Chance positions | Test: from pos 7 → nearest is pos 15 (Pennsylvania RR); from pos 22 → nearest is pos 25 (B&O RR); from pos 36 → nearest is pos 5 (Reading RR, wraps around) |
+| P1A.S5.T13a | Implement "Advance to nearest railroad" — if railroad is UNOWNED, player may buy it at face value | Test: nearest railroad is unowned → player gets buy/auction choice |
+| P1A.S5.T13b | Implement "Advance to nearest railroad" — if railroad is OWNED, pay DOUBLE the normal railroad rent | Test: owner has 2 railroads → normal rent $50 → card rent $100 |
+| P1A.S5.T13c | Validate that the Chance deck contains exactly TWO "Advance to nearest Railroad" cards | Test: filter chance deck by effect type 'advanceNearestRailroad' → count is 2 |
+| P1A.S5.T14 | Implement card effect: "Advance to nearest utility, pay 10× dice" — nearest utility calculation from ALL Chance positions | Test: from pos 7 → nearest is pos 12 (Electric Co); from pos 22 → nearest is pos 28 (Water Works); from pos 36 → nearest is pos 12 (Electric Co, wraps around) |
+| P1A.S5.T14a | Implement "Advance to nearest utility" — if utility is UNOWNED, player may buy it at face value | Test: nearest utility is unowned → player gets buy/auction choice |
+| P1A.S5.T14b | Implement "Advance to nearest utility" — if utility is OWNED, pay 10× dice roll (not the normal 4× or 10× based on ownership count) | Test: roll 8 → pay $80 regardless of how many utilities owner has |
+| P1A.S5.T15 | Implement card effect: "Advance to Boardwalk" → moves to position 39 | Test: from any Chance position → player moves to pos 39; no Go passing (all Chance spaces are before pos 39 or at 36 which doesn't pass Go) |
+| P1A.S5.T16 | Implement card effect: "Take a trip to Reading Railroad" → move to position 5, collect $200 if passing Go | Test: from Chance pos 36 → move to pos 5, pass Go → collect $200; from Chance pos 7 → move to pos 5 does NOT pass Go from pos 7 (would need to be after pos 5) — actually from pos 7 going forward doesn't reach pos 5 without passing Go, so this only applies from pos 22 or 36 |
+| P1A.S5.T17 | Implement card effect: "Speeding fine $15" → deducts $15 from player | Test: player cash decreases by exactly $15 |
+| P1A.S5.T18 | Implement card effect: "Building loan matures, collect $150" → adds $150 to player | Test: player cash increases by exactly $150 |
+| P1A.S5.T19 | Implement both GOOJF cards can coexist — player can hold one from Chance AND one from Community Chest simultaneously | Test: draw GOOJF from Chance, then draw GOOJF from CC → player holds 2 cards; using one returns it to correct deck |
+| P1A.S5.T20 | Implement `returnCardToDeck(state, card, deckName)` → places card at bottom of deck | Test: return a non-GOOJF card; it appears at the bottom of the deck |
+| P1A.S5.T21 | Implement card-triggered movement → after moving to target space, RESOLVE that space (may trigger buy/rent/tax/another card draw) | Test: "Advance to Illinois Ave" and Illinois is owned by opponent → player pays rent after moving |
 
 ### Step 1A.6 — Property Management Logic
 
@@ -161,7 +187,7 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 |----|------|------|
 | P1A.S6.T1 | Implement `buyProperty(state, playerId, spaceId)` → transfers property ownership, deducts cost from player | Test: player buys Baltic ($60) → cash decreases by $60, property owner is now playerId |
 | P1A.S6.T2 | Implement `buyProperty` validation → rejects if property already owned, player can't afford, or not on that space | Test: attempt to buy owned property throws; attempt with insufficient funds throws |
-| P1A.S6.T3 | Implement `startAuction(state, spaceId)` → creates auction state with starting bid $0 | Test: auction state created with correct property, all active players eligible, starting bid 0 |
+| P1A.S6.T3 | Implement `startAuction(state, spaceId)` → creates auction state with starting bid $0; ALL active players eligible including the player who declined to buy | Test: auction state created with correct property, all active players (including decliner) eligible, starting bid 0 |
 | P1A.S6.T4 | Implement `placeBid(state, playerId, amount)` → records bid if valid (> current high bid, ≤ player's cash) | Test: bid $50 when current is $30 → accepted; bid $20 when current is $30 → rejected |
 | P1A.S6.T5 | Implement `placeBid` validation → player can only bid what they can afford | Test: player with $100 bids $150 → rejected |
 | P1A.S6.T6 | Implement `passBid(state, playerId)` → marks player as passed in auction | Test: player passes → no longer eligible to bid; auction continues with remaining bidders |
@@ -176,6 +202,7 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P1A.S6.T15 | Implement hotel building → requires 4 houses, converts to hotel, returns 4 houses to supply | Test: build hotel → property has hotel; house supply increases by 4; hotel supply decreases by 1 |
 | P1A.S6.T16 | Implement building supply tracking → 32 houses, 12 hotels | Test: initial state has 32 houses, 12 hotels; after building 3 houses → 29 remain |
 | P1A.S6.T17 | Implement building supply shortage → can't build if no houses/hotels remain | Test: set house supply to 0 → buildHouse rejected |
+| P1A.S6.T17a | Implement building auction — when multiple players want to build and house/hotel supply is insufficient for all, the buildings must be auctioned off one at a time to the highest bidder | Test: 2 players both want to build, only 1 house left → house is auctioned; highest bidder gets to build |
 | P1A.S6.T18 | Implement `sellBuilding(state, playerId, spaceId)` → removes house/hotel, refunds half price | Test: sell 1 house on Baltic (house cost $50) → player gets $25, Baltic has 0 houses |
 | P1A.S6.T19 | Implement even-sell rule → can't sell if it would violate even distribution | Test: Baltic 2 houses, Mediterranean 1 house → can sell from Baltic; Baltic 1, Mediterranean 1 → can sell from either |
 | P1A.S6.T20 | Implement hotel downgrade → selling hotel returns to 4 houses (if supply available) | Test: sell hotel → property goes to 4 houses; house supply decreases by 4; hotel supply increases by 1 |
@@ -270,7 +297,9 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P1B.S2.T6 | Create `Modal` component with overlay, close button, title, and body content slot | Render test: modal opens over content; close button fires onClose; clicking overlay closes modal |
 | P1B.S2.T7 | Create `Toast` component with variants (success, error, info, warning) and auto-dismiss timer | Render test: toast appears with correct variant style; disappears after timeout |
 | P1B.S2.T8 | Create `ToastProvider` context and `useToast()` hook for showing toasts from anywhere | Integration test: calling `showToast('message')` from a child component renders a toast |
-| P1B.S2.T9 | Create `PropertyCard` component displaying property details (name, color, cost, rent tiers, mortgage value) | Render test: pass property data → all fields render correctly; color bar matches colorGroup |
+| P1B.S2.T9 | Create `PropertyCard` component displaying property details (name, color, cost, rent tiers, mortgage value) styled like a classic Title Deed card — shows color band, property name, all 6 rent tiers (base, 1–4 houses, hotel), mortgage value, house/hotel build cost | Render test: pass property data → all fields render correctly; color bar matches colorGroup; all rent tiers visible |
+| P1B.S2.T9a | Create `RailroadCard` component variant — shows railroad name, rent table (1 RR: $25, 2: $50, 3: $100, 4: $200), mortgage value $100 | Render test: railroad card shows correct tiered rent; no house/hotel section |
+| P1B.S2.T9b | Create `UtilityCard` component variant — shows utility name, rent rules ("1 utility: 4× dice / 2 utilities: 10× dice"), mortgage value $75 | Render test: utility card shows correct rent rules text; no house section |
 | P1B.S2.T10 | Create `CashDisplay` component with formatted dollar amount and +/- animation on change | Render test: displays "$1,500"; changing value triggers brief animation |
 | P1B.S2.T11 | Create `TokenSelector` component showing available tokens as selectable icons | Render test: all tokens displayed; clicking one fires onSelect with token type; selected token highlighted |
 | P1B.S2.T12 | Create `TokenSelector` disabled state for tokens already chosen by other players | Render test: passing `disabledTokens` prop grays out those tokens; they can't be selected |
@@ -464,7 +493,10 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P3A.S3.T5 | Implement card effect: Go to Jail → token moves to Jail | Visual: "Go directly to Jail" → token goes to Jail; no $200 |
 | P3A.S3.T6 | Implement card effect: GOOJF → card added to player's HeldCardsDisplay | Visual: GOOJF card appears in player's held cards area |
 | P3A.S3.T7 | Implement card effect: collect from/pay each player → all player cash displays update | Visual: all players' cash changes simultaneously with notification |
-| P3A.S3.T8 | Implement card effect: repairs → show cost breakdown and deduct | Visual: "Pay $25/house, $100/hotel" → shows total calculation → cash deducted |
+| P3A.S3.T8 | Implement card effect: Chance repairs → show cost breakdown "Pay $25/house, $100/hotel" and deduct | Visual: shows total calculation → cash deducted |
+| P3A.S3.T8a | Implement card effect: Community Chest repairs → show cost breakdown "Pay $40/house, $115/hotel" and deduct (different rates than Chance) | Visual: shows correct CC repair rates → total calculation → cash deducted |
+| P3A.S3.T9 | Implement card effect: "Advance to nearest Railroad, pay double rent" UI — token moves to railroad, special rent calculation displayed | Visual: token moves to nearest railroad; if owned, rent breakdown shows "Double Railroad Rent: $X" |
+| P3A.S3.T10 | Implement card effect: "Advance to nearest Utility, pay 10× dice" UI — token moves to utility, dice roll for rent displayed | Visual: token moves to nearest utility; if owned, shows dice roll and "10× dice = $X" |
 
 ### Step 3A.4 — Jail UI & Flow
 
@@ -502,6 +534,7 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P3B.S1.T1 | Implement buy confirmation modal — shows property card, price, player's current cash, and Buy/Decline buttons | Render test: modal shows correct property info; Buy deducts cash; Decline triggers auction |
 | P3B.S1.T2 | Wire Buy button → emits BuyProperty → server validates and broadcasts → property ownership updates | Integration test: buy → property owner updated on all clients |
 | P3B.S1.T3 | Wire Decline button → emits DeclineProperty → server starts auction → auction state broadcast | Integration test: decline → all clients enter auction state |
+| P3B.S1.T3a | Verify declining player is included in auction — the player who declined to buy appears as an eligible bidder in the auction | Test: player declines → auction starts → that same player CAN place bids |
 | P3B.S1.T4 | Create `AuctionPanel` component — shows property being auctioned, current high bid, high bidder name, timer | Render test: panel displays all auction info; updates on new bids |
 | P3B.S1.T5 | Implement bid input — preset increment buttons ($1, $10, $50, $100) and custom amount input | Render test: clicking $10 when current bid is $50 → bid input shows $60 |
 | P3B.S1.T6 | Wire "Place Bid" button → emits AuctionBid → server validates → broadcasts updated auction state | Integration test: bid placed → all clients see new high bid and bidder |
@@ -534,6 +567,7 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P3B.S3.T8 | Implement Sell Buildings interface — select buildings to sell, shows half-price refund | Render test: each property shows "Sell House ($25 refund)" button |
 | P3B.S3.T9 | Wire "Sell House" → emits SellBuilding → server validates even-sell → house removed, cash refunded | Integration test: sell house → house removed from board; cash increases by half price |
 | P3B.S3.T10 | Implement hotel sell → downgrade to 4 houses (if supply available) or blocked with explanation | Visual: sell hotel → 4 houses appear; if insufficient house supply, shows error |
+| P3B.S3.T11 | Implement building auction UI — when house/hotel supply is limited and multiple players want to build, a building auction interface appears for each contested building | Visual: "Building Auction: 1 House Available" → bidding interface → winner gets to place the house |
 
 ### Step 3B.4 — Mortgage Management UI
 
@@ -713,6 +747,14 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P6.S1.T8 | Edge case tests: player lands on Go exactly, player wraps around multiple times with card effects | Tests pass for all edge cases |
 | P6.S1.T9 | Edge case tests: simultaneous trades, building at max supply, mortgage during debt | Tests pass for all edge cases |
 | P6.S1.T10 | Edge case tests: 2-player specific scenarios (bankruptcy immediately ends game) | Tests pass: 2-player bankruptcy triggers win |
+| P6.S1.T11 | Edge case tests: Chance "nearest railroad" from all 3 Chance positions (7→15, 22→25, 36→5 with Go-pass) — both owned and unowned scenarios | Tests pass for all 6 scenarios |
+| P6.S1.T12 | Edge case tests: Chance "nearest utility" from all 3 Chance positions (7→12, 22→28, 36→12 with Go-pass) — both owned and unowned scenarios | Tests pass for all 6 scenarios |
+| P6.S1.T13 | Edge case tests: both GOOJF cards held simultaneously — use Chance GOOJF returns to Chance deck, use CC GOOJF returns to CC deck | Tests pass: correct deck receives the returned card |
+| P6.S1.T14 | Edge case tests: building auction — 3 players want to build, only 2 houses available → 2 auctions conducted | Tests pass: auctions resolve correctly |
+| P6.S1.T15 | Edge case tests: Chance card "Take a trip to Reading Railroad" from pos 36 → passes Go → collects $200 + resolves Reading Railroad | Tests pass: $200 awarded before railroad resolution |
+| P6.S1.T16 | Edge case tests: Chance card triggers movement to another Chance/CC space → second card drawn and resolved | Tests pass: chain of card effects processed correctly |
+| P6.S1.T17 | Edge case tests: CC "Street repairs" with $40/house and $115/hotel rates (NOT $25/$100 Chance rates) — verify correct rates for each deck | Tests pass: Chance repairs at $25/$100; CC repairs at $40/$115 |
+| P6.S1.T18 | Edge case tests: declining player participates in and wins their own auction after declining to buy | Tests pass: decliner bids, wins, receives property at auction price (may be different from face value) |
 
 ### Step 6.2 — Integration Tests
 
@@ -744,6 +786,9 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 | P6.S3.T11 | E2E: Reconnection — disconnect one player, reconnect, continue playing | Playwright: kill socket → reconnection overlay → reconnect → resume |
 | P6.S3.T12 | E2E: Mobile viewport (375px) — full game flow playable | Playwright with mobile viewport: all actions accessible and game playable |
 | P6.S3.T13 | E2E: Chat messages sent and received between players | Playwright: type message → send → both players see message |
+| P6.S3.T14 | E2E: Decline property and participate in auction as the declining player | Playwright: land on unowned → click Decline → auction appears → declining player can bid |
+| P6.S3.T15 | E2E: Draw a Chance/Community Chest card and see effect applied | Playwright: land on Chance space → card animation → card text displayed → effect applied (cash change or movement) |
+| P6.S3.T16 | E2E: Mortgage and unmortgage a property | Playwright: click Mortgage → select property → cash increases → property dimmed; click Unmortgage → pay cost → property restored |
 
 ### Step 6.4 — CI/CD Pipeline Finalization
 
@@ -775,15 +820,15 @@ Task IDs follow the pattern `P{phase}.S{step}.T{task}` (e.g., `P0.S1.T1`).
 
 ## Task Summary
 
-| Phase | Steps | Tasks |
-|-------|-------|-------|
-| Phase 0 | 5 | 31 |
-| Phase 1A | 10 | 88 |
-| Phase 1B | 7 | 60 |
-| Phase 2 | 6 | 38 |
-| Phase 3A | 5 | 38 |
-| Phase 3B | 5 | 41 |
-| Phase 4 | 6 | 48 |
-| Phase 5 | 4 | 31 |
-| Phase 6 | 5 | 39 |
-| **Total** | **53** | **414** |
+| Phase | Steps | Tasks | Delta from v1 |
+|-------|-------|-------|---------------|
+| Phase 0 | 5 | 45 | +14 (board validation, card enumeration, tokens, denominations, title deeds, action types) |
+| Phase 1A | 10 | 136 | +48 (rent validation, CC repairs, nearest RR/utility from all positions, dual GOOJF, building auction, missing card effects, chain resolution) |
+| Phase 1B | 7 | 72 | +12 (railroad card, utility card, title deed component) |
+| Phase 2 | 6 | 38 | — |
+| Phase 3A | 5 | 43 | +5 (CC repairs UI, nearest RR/utility UI) |
+| Phase 3B | 5 | 46 | +5 (declining player in auction, building auction UI) |
+| Phase 4 | 6 | 42 | -6 (recount correction) |
+| Phase 5 | 4 | 31 | — |
+| Phase 6 | 5 | 58 | +19 (edge cases for new rules, E2E for auction/cards/mortgage) |
+| **Total** | **53** | **511** | **+97 new tasks** |
