@@ -1,0 +1,98 @@
+[
+  {
+    "id": "cc-1",
+    "deck": "communityChest",
+    "text": "Advance to Go. Collect $200.",
+    "effect": { "type": "move", "position": 0 }
+  },
+  {
+    "id": "cc-2",
+    "deck": "communityChest",
+    "text": "Bank error in your favor. Collect $200.",
+    "effect": { "type": "cash", "amount": 200 }
+  },
+  {
+    "id": "cc-3",
+    "deck": "communityChest",
+    "text": "Doctor's fee. Pay $50.",
+    "effect": { "type": "cash", "amount": -50 }
+  },
+  {
+    "id": "cc-4",
+    "deck": "communityChest",
+    "text": "From sale of stock you get $50.",
+    "effect": { "type": "cash", "amount": 50 }
+  },
+  {
+    "id": "cc-5",
+    "deck": "communityChest",
+    "text": "Get Out of Jail Free. This card may be kept until needed or sold/traded.",
+    "effect": { "type": "goojf" }
+  },
+  {
+    "id": "cc-6",
+    "deck": "communityChest",
+    "text": "Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.",
+    "effect": { "type": "jail" }
+  },
+  {
+    "id": "cc-7",
+    "deck": "communityChest",
+    "text": "Holiday fund matures. Receive $100.",
+    "effect": { "type": "cash", "amount": 100 }
+  },
+  {
+    "id": "cc-8",
+    "deck": "communityChest",
+    "text": "Income tax refund. Collect $20.",
+    "effect": { "type": "cash", "amount": 20 }
+  },
+  {
+    "id": "cc-9",
+    "deck": "communityChest",
+    "text": "It is your birthday. Collect $10 from every player.",
+    "effect": { "type": "collectFromAll", "amount": 10 }
+  },
+  {
+    "id": "cc-10",
+    "deck": "communityChest",
+    "text": "Life insurance matures. Collect $100.",
+    "effect": { "type": "cash", "amount": 100 }
+  },
+  {
+    "id": "cc-11",
+    "deck": "communityChest",
+    "text": "Hospital fees. Pay $100.",
+    "effect": { "type": "cash", "amount": -100 }
+  },
+  {
+    "id": "cc-12",
+    "deck": "communityChest",
+    "text": "School fees. Pay $50.",
+    "effect": { "type": "cash", "amount": -50 }
+  },
+  {
+    "id": "cc-13",
+    "deck": "communityChest",
+    "text": "Receive $25 consultancy fee.",
+    "effect": { "type": "cash", "amount": 25 }
+  },
+  {
+    "id": "cc-14",
+    "deck": "communityChest",
+    "text": "You are assessed for street repairs. Pay $40 per house and $115 per hotel.",
+    "effect": { "type": "repairs", "perHouse": 40, "perHotel": 115 }
+  },
+  {
+    "id": "cc-15",
+    "deck": "communityChest",
+    "text": "You have won second prize in a beauty contest. Collect $10.",
+    "effect": { "type": "cash", "amount": 10 }
+  },
+  {
+    "id": "cc-16",
+    "deck": "communityChest",
+    "text": "You inherit $100.",
+    "effect": { "type": "cash", "amount": 100 }
+  }
+]

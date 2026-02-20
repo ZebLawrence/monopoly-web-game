@@ -1,0 +1,98 @@
+[
+  {
+    "id": "chance-1",
+    "deck": "chance",
+    "text": "Advance to Boardwalk.",
+    "effect": { "type": "move", "position": 39 }
+  },
+  {
+    "id": "chance-2",
+    "deck": "chance",
+    "text": "Advance to Go. Collect $200.",
+    "effect": { "type": "move", "position": 0 }
+  },
+  {
+    "id": "chance-3",
+    "deck": "chance",
+    "text": "Advance to Illinois Avenue. If you pass Go, collect $200.",
+    "effect": { "type": "move", "position": 24 }
+  },
+  {
+    "id": "chance-4",
+    "deck": "chance",
+    "text": "Advance to St. Charles Place. If you pass Go, collect $200.",
+    "effect": { "type": "move", "position": 11 }
+  },
+  {
+    "id": "chance-5",
+    "deck": "chance",
+    "text": "Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay the owner twice the rental to which they are otherwise entitled.",
+    "effect": { "type": "advanceNearestRailroad" }
+  },
+  {
+    "id": "chance-6",
+    "deck": "chance",
+    "text": "Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay the owner twice the rental to which they are otherwise entitled.",
+    "effect": { "type": "advanceNearestRailroad" }
+  },
+  {
+    "id": "chance-7",
+    "deck": "chance",
+    "text": "Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times amount thrown.",
+    "effect": { "type": "advanceNearestUtility" }
+  },
+  {
+    "id": "chance-8",
+    "deck": "chance",
+    "text": "Bank pays you dividend of $50.",
+    "effect": { "type": "cash", "amount": 50 }
+  },
+  {
+    "id": "chance-9",
+    "deck": "chance",
+    "text": "Get Out of Jail Free. This card may be kept until needed or sold/traded.",
+    "effect": { "type": "goojf" }
+  },
+  {
+    "id": "chance-10",
+    "deck": "chance",
+    "text": "Go Back 3 Spaces.",
+    "effect": { "type": "moveBack", "spaces": 3 }
+  },
+  {
+    "id": "chance-11",
+    "deck": "chance",
+    "text": "Go to Jail. Go directly to Jail, do not pass Go, do not collect $200.",
+    "effect": { "type": "jail" }
+  },
+  {
+    "id": "chance-12",
+    "deck": "chance",
+    "text": "Make general repairs on all your property. For each house pay $25, for each hotel pay $100.",
+    "effect": { "type": "repairs", "perHouse": 25, "perHotel": 100 }
+  },
+  {
+    "id": "chance-13",
+    "deck": "chance",
+    "text": "Speeding fine $15.",
+    "effect": { "type": "cash", "amount": -15 }
+  },
+  {
+    "id": "chance-14",
+    "deck": "chance",
+    "text": "Take a trip to Reading Railroad. If you pass Go, collect $200.",
+    "effect": { "type": "move", "position": 5 }
+  },
+  {
+    "id": "chance-15",
+    "deck": "chance",
+    "text": "You have been elected Chairman of the Board. Pay each player $50.",
+    "effect": { "type": "payEachPlayer", "amount": 50 }
+  },
+  {
+    "id": "chance-16",
+    "deck": "chance",
+    "text": "Your building loan matures. Collect $150.",
+    "effect": { "type": "cash", "amount": 150 }
+  }
+]
