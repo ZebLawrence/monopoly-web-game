@@ -84,3 +84,14 @@ export {
   type AuctionState,
   type BuildingSupply,
 } from './properties';
+
+// Step 1A.7 — Trading Logic
+export {
+  createTradeOffer,
+  acceptTrade,
+  rejectTrade,
+  counterTrade,
+  storeTrade,
+  getTrade,
+  resetTrades,
+} from './trading';
