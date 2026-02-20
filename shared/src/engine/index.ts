@@ -104,3 +104,13 @@ export {
   rollInJail,
   type JailRollResult,
 } from './jail';
+
+// Step 1A.9 — Bankruptcy & Endgame
+export {
+  canPlayerAfford,
+  calculateLiquidationValue,
+  declareBankruptcy,
+  getWinner,
+  calculateNetWorth,
+  determineTimedGameWinner,
+} from './bankruptcy';
