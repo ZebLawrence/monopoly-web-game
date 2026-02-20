@@ -49,4 +49,5 @@ export interface GameState {
   pendingBuyDecision?: PendingBuyDecision | null;
   lastResolution?: LastResolution | null;
   doublesCount?: number;
+  lastPassedGo?: boolean;
 }

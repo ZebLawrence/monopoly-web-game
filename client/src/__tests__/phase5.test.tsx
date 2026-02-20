@@ -281,6 +281,7 @@ describe('Step 5.3: Performance Optimization', () => {
     // Create 150 events
     const events: GameEvent[] = Array.from({ length: 150 }, (_, i) => ({
       id: `e${i}`,
+      gameId: 'test-game',
       type: GameEventType.DiceRolled,
       timestamp: Date.now() + i,
       payload: { playerId: 'p1', die1: 3, die2: 4, total: 7, isDoubles: false },

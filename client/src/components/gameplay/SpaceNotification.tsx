@@ -7,11 +7,25 @@ import { useToast } from '../ui/Toast';
 export interface SpaceNotificationProps {
   resolution: LastResolution | null | undefined;
   localPlayerName: string;
+  passedGo?: boolean;
 }
 
-export function SpaceNotification({ resolution, localPlayerName }: SpaceNotificationProps) {
+export function SpaceNotification({
+  resolution,
+  localPlayerName,
+  passedGo,
+}: SpaceNotificationProps) {
   const { showToast } = useToast();
   const lastResolution = useRef<LastResolution | null>(null);
+  const lastPassedGo = useRef(false);
+
+  // Show Passed Go toast when lastPassedGo transitions to true
+  useEffect(() => {
+    if (passedGo && !lastPassedGo.current) {
+      showToast('Passed Go! Collected $200', 'success');
+    }
+    lastPassedGo.current = !!passedGo;
+  }, [passedGo, showToast]);
 
   useEffect(() => {
     if (!resolution) return;
@@ -65,7 +79,7 @@ export function SpaceNotification({ resolution, localPlayerName }: SpaceNotifica
         showToast('Used Get Out of Jail Free card!', 'success');
         break;
       case 'ownProperty':
-        // No toast for landing on own property
+        showToast(`Your property — ${resolution.spaceName}`, 'info');
         break;
       default:
         break;
