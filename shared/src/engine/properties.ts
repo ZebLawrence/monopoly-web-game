@@ -280,33 +280,9 @@ export function canSellBuilding(
 
   if (houses <= 0) return 'No buildings to sell';
 
-  // Check even-sell rule
+  // Check even-sell rule: after selling, max-min across group must be <= 1
   if (space.colorGroup) {
     const groupSpaces = getColorGroupSpaces(state, space.colorGroup);
-    for (const gs of groupSpaces) {
-      if (gs.id === spaceId) continue;
-      const gsState = getPropertyState(state, gs.id);
-      const gsHouses = gsState?.houses ?? 0;
-      if (houses - 1 < gsHouses - 1) {
-        // After selling, this property would have fewer buildings
-        // Actually: check if (houses - 1) < gsHouses
-        // Wait, even-sell means you can't sell if it creates uneven distribution
-      }
-      // The rule is: after selling, this property's count must be >= min(others) - but actually
-      // the even-sell rule says you can't have a difference greater than 1
-      // So: houses-1 must be >= gsHouses - 1 for all peers
-      // Simplified: if any peer has more houses than this property AFTER selling, it's blocked
-      // Wait no: the rule is you can sell if it doesn't violate evenness
-      // Evenness: max - min <= 1 across the group
-      if (houses - 1 < gsHouses - 1) {
-        // Actually let me think about this more carefully.
-        // Even build/sell rule: within a color group, the difference in houses between
-        // the most-built and least-built property can never exceed 1.
-        // So after selling from this property (houses - 1), we need:
-        // max(all houses in group after) - min(all houses in group after) <= 1
-      }
-    }
-    // Let me just do the actual check
     const allHousesAfter: number[] = [];
     for (const gs of groupSpaces) {
       if (gs.id === spaceId) {
