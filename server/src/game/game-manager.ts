@@ -24,13 +24,18 @@ import {
   payJailFine,
   useJailCard,
   rollInJail,
+  drawCard,
+  applyCardEffect,
   getActivePlayer,
+  getPlayerById,
   isGameOver,
   TurnStateMachine,
+  getConsecutiveDoubles,
   type PlayerSetup,
   type GameAction,
   type GameState,
   type RoomMetadata,
+  type DiceResult,
   TurnState,
 } from '@monopoly/shared';
 import type { RedisClient } from '../redis/client';
@@ -138,6 +143,105 @@ export async function processAction(
   return { ok: true, state };
 }
 
+function handlePostRollResolution(
+  state: GameState,
+  playerId: string,
+  diceResult: DiceResult,
+  machine: TurnStateMachine,
+  action: GameAction,
+): GameState {
+  const currentPlayer = getActivePlayer(state);
+  const resolution = resolveSpace(state, currentPlayer.id, diceResult);
+  state = applySpaceResolution(state, currentPlayer.id, resolution);
+
+  // Handle card drawing
+  if (resolution.type === 'drawCard' && resolution.deckName) {
+    const drawResult = drawCard(state, resolution.deckName);
+    state = drawResult.state;
+    state.lastCardDrawn = drawResult.card;
+
+    // Apply card effect
+    const effectResult = applyCardEffect(state, currentPlayer.id, drawResult.card, diceResult);
+    state = effectResult.state;
+
+    // If card moves player and triggers buy decision
+    if (effectResult.needsBuyDecision && effectResult.spaceResolution?.propertyDetails) {
+      state.pendingBuyDecision = {
+        spaceId: effectResult.spaceResolution.propertyDetails.spaceId,
+        spaceName: effectResult.spaceResolution.propertyDetails.name,
+        cost: effectResult.spaceResolution.propertyDetails.cost,
+      };
+    }
+
+    // If card sends to jail
+    if (effectResult.sentToJail) {
+      state.lastResolution = {
+        type: 'goToJail',
+        spaceName: 'Jail',
+      };
+    }
+  } else {
+    state.lastCardDrawn = null;
+  }
+
+  // Set resolution info for client UI
+  if (resolution.type === 'unownedProperty' && resolution.propertyDetails) {
+    state.pendingBuyDecision = {
+      spaceId: resolution.propertyDetails.spaceId,
+      spaceName: resolution.propertyDetails.name,
+      cost: resolution.propertyDetails.cost,
+    };
+    state.lastResolution = {
+      type: 'unownedProperty',
+      spaceName: resolution.space.name,
+    };
+  } else if (resolution.type === 'rentPayment') {
+    const owner = resolution.ownerId ? getPlayerById(state, resolution.ownerId) : null;
+    state.lastResolution = {
+      type: 'rentPayment',
+      spaceName: resolution.space.name,
+      amount: resolution.rentAmount,
+      ownerId: resolution.ownerId,
+      ownerName: owner?.name,
+    };
+    state.pendingBuyDecision = null;
+  } else if (resolution.type === 'tax') {
+    state.lastResolution = {
+      type: 'tax',
+      spaceName: resolution.space.name,
+      amount: resolution.taxAmount,
+    };
+    state.pendingBuyDecision = null;
+  } else if (resolution.type === 'goToJail') {
+    state.lastResolution = {
+      type: 'goToJail',
+      spaceName: 'Go To Jail',
+    };
+    state.pendingBuyDecision = null;
+  } else if (resolution.type === 'drawCard') {
+    state.lastResolution = {
+      type: 'drawCard',
+      spaceName: resolution.space.name,
+      deckName: resolution.deckName,
+    };
+    state.pendingBuyDecision = null;
+  } else {
+    state.lastResolution = {
+      type: resolution.type,
+      spaceName: resolution.space.name,
+    };
+    state.pendingBuyDecision = null;
+  }
+
+  // Transition through Rolling → Resolving
+  machine.transition(action, {}); // auto to Resolving
+
+  const landedOnUnownedProperty = resolution.type === 'unownedProperty';
+  machine.transition(action, { landedOnUnownedProperty });
+
+  return state;
+}
+
 function applyAction(
   state: GameState,
   playerId: string,
@@ -150,41 +254,106 @@ function applyAction(
       const diceResult = rollDice();
       machine.rolledDoubles = diceResult.isDoubles;
 
+      // Store dice result for client
+      state.lastDiceResult = {
+        die1: diceResult.die1,
+        die2: diceResult.die2,
+        total: diceResult.total,
+        isDoubles: diceResult.isDoubles,
+      };
+      state.doublesCount = getConsecutiveDoubles(state, playerId) + (diceResult.isDoubles ? 1 : 0);
+      state.lastCardDrawn = null;
+
       const player = getActivePlayer(state);
 
       // Check if in jail
       if (player.jailStatus.inJail) {
         const jailResult = rollInJail(state, player.id, diceResult);
         state = jailResult.state;
+        // Re-store dice result after state clone
+        state.lastDiceResult = {
+          die1: diceResult.die1,
+          die2: diceResult.die2,
+          total: diceResult.total,
+          isDoubles: diceResult.isDoubles,
+        };
+
         if (!jailResult.freed) {
-          // Still in jail → transition through resolving to PlayerAction then EndTurn
+          state.lastResolution = {
+            type: 'stayInJail',
+            spaceName: 'Jail',
+          };
+          state.pendingBuyDecision = null;
+          // Still in jail
           machine.transition(action, {}); // Rolling → Resolving
           machine.transition(action, {}); // Resolving → PlayerAction
           return state;
         }
-        // Freed from jail — continue with movement below
+
+        if (jailResult.forcedExit) {
+          state.lastResolution = {
+            type: 'forcedJailExit',
+            spaceName: 'Jail',
+            amount: 50,
+          };
+        } else {
+          state.lastResolution = {
+            type: 'freedFromJail',
+            spaceName: 'Jail',
+          };
+        }
+
+        // Freed from jail — resolve the space they moved to
+        state = handlePostRollResolution(state, player.id, diceResult, machine, action);
+        // Preserve dice result
+        state.lastDiceResult = {
+          die1: diceResult.die1,
+          die2: diceResult.die2,
+          total: diceResult.total,
+          isDoubles: diceResult.isDoubles,
+        };
+        return state;
       }
 
       const moveResult = applyMovement(state, player.id, diceResult);
       state = moveResult.state;
+      // Re-store dice result after state clone
+      state.lastDiceResult = {
+        die1: diceResult.die1,
+        die2: diceResult.die2,
+        total: diceResult.total,
+        isDoubles: diceResult.isDoubles,
+      };
 
       if (moveResult.sentToJail) {
+        state.lastResolution = {
+          type: 'threeDoublesToJail',
+          spaceName: 'Jail',
+        };
+        state.pendingBuyDecision = null;
+        state.doublesCount = 0;
         machine.transition(action, {}); // Rolling → Resolving
         machine.transition(action, {}); // Resolving → PlayerAction
         return state;
       }
 
-      // Resolve landing space
-      const currentPlayer = getActivePlayer(state);
-      const resolution = resolveSpace(state, currentPlayer.id);
-      const resolved = applySpaceResolution(state, currentPlayer.id, resolution);
-      state = resolved;
+      if (moveResult.passedGo) {
+        // Mark that player passed Go for client notification
+        state.lastResolution = {
+          type: 'passedGo',
+          spaceName: 'Go',
+          amount: 200,
+        };
+      }
 
-      // Transition through Rolling → Resolving
-      machine.transition(action, {}); // auto to Resolving
-
-      const landedOnUnownedProperty = resolution.type === 'unowned_property';
-      machine.transition(action, { landedOnUnownedProperty });
+      state = handlePostRollResolution(state, player.id, diceResult, machine, action);
+      // Preserve dice result
+      state.lastDiceResult = {
+        die1: diceResult.die1,
+        die2: diceResult.die2,
+        total: diceResult.total,
+        isDoubles: diceResult.isDoubles,
+      };
 
       return state;
     }
@@ -193,24 +362,92 @@ function applyAction(
       machine.transition(action);
       const diceResult = rollDice();
 
+      state.lastDiceResult = {
+        die1: diceResult.die1,
+        die2: diceResult.die2,
+        total: diceResult.total,
+        isDoubles: diceResult.isDoubles,
+      };
+      state.lastCardDrawn = null;
+
       const player = getActivePlayer(state);
       const jailResult = rollInJail(state, player.id, diceResult);
       state = jailResult.state;
+      state.lastDiceResult = {
+        die1: diceResult.die1,
+        die2: diceResult.die2,
+        total: diceResult.total,
+        isDoubles: diceResult.isDoubles,
+      };
 
       if (jailResult.freed) {
         machine.rolledDoubles = diceResult.isDoubles;
+
+        if (jailResult.forcedExit) {
+          state.lastResolution = {
+            type: 'forcedJailExit',
+            spaceName: 'Jail',
+            amount: 50,
+          };
+        } else {
+          state.lastResolution = {
+            type: 'freedFromJail',
+            spaceName: 'Jail',
+          };
+        }
+
         const moveResult = applyMovement(state, player.id, diceResult);
         state = moveResult.state;
+        state.lastDiceResult = {
+          die1: diceResult.die1,
+          die2: diceResult.die2,
+          total: diceResult.total,
+          isDoubles: diceResult.isDoubles,
+        };
 
         const currentPlayer = getActivePlayer(state);
-        const resolution = resolveSpace(state, currentPlayer.id);
+        const resolution = resolveSpace(state, currentPlayer.id, diceResult);
         state = applySpaceResolution(state, currentPlayer.id, resolution);
+        state.lastDiceResult = {
+          die1: diceResult.die1,
+          die2: diceResult.die2,
+          total: diceResult.total,
+          isDoubles: diceResult.isDoubles,
+        };
+
+        // Handle card drawing
+        if (resolution.type === 'drawCard' && resolution.deckName) {
+          const drawResult = drawCard(state, resolution.deckName);
+          state = drawResult.state;
+          state.lastCardDrawn = drawResult.card;
+          const effectResult = applyCardEffect(
+            state,
+            currentPlayer.id,
+            drawResult.card,
+            diceResult,
+          );
+          state = effectResult.state;
+        }
+
+        // Set resolution info
+        if (resolution.type === 'unownedProperty' && resolution.propertyDetails) {
+          state.pendingBuyDecision = {
+            spaceId: resolution.propertyDetails.spaceId,
+            spaceName: resolution.propertyDetails.name,
+            cost: resolution.propertyDetails.cost,
+          };
+        }
 
         machine.transition(action, {});
         machine.transition(action, {
-          landedOnUnownedProperty: resolution.type === 'unowned_property',
+          landedOnUnownedProperty: resolution.type === 'unownedProperty',
         });
       } else {
+        state.lastResolution = {
+          type: 'stayInJail',
+          spaceName: 'Jail',
+        };
+        state.pendingBuyDecision = null;
         machine.transition(action, {});
         machine.transition(action, {});
       }
@@ -220,11 +457,15 @@ function applyAction(
 
     case 'BuyProperty': {
       machine.transition(action);
-      return buyProperty(state, playerId, action.propertyId);
+      state = buyProperty(state, playerId, action.propertyId);
+      state.pendingBuyDecision = null;
+      state.lastResolution = null;
+      return state;
     }
 
     case 'DeclineProperty': {
       machine.transition(action);
+      state.pendingBuyDecision = null;
       // Start auction if auctions enabled
       if (state.settings.auctionEnabled) {
         state = startAuction(state, action.propertyId);
@@ -300,16 +541,34 @@ function applyAction(
 
     case 'PayJailFine': {
       machine.transition(action);
-      return payJailFine(state, playerId);
+      state = payJailFine(state, playerId);
+      state.lastResolution = {
+        type: 'paidJailFine',
+        spaceName: 'Jail',
+        amount: 50,
+      };
+      return state;
     }
 
     case 'UseJailCard': {
       machine.transition(action);
-      return useJailCard(state, playerId);
+      state = useJailCard(state, playerId);
+      state.lastResolution = {
+        type: 'usedJailCard',
+        spaceName: 'Jail',
+      };
+      return state;
     }
 
     case 'EndTurn': {
       machine.transition(action);
+
+      // Clear transient UI state
+      state.lastDiceResult = null;
+      state.lastCardDrawn = null;
+      state.lastResolution = null;
+      state.pendingBuyDecision = null;
+      state.doublesCount = 0;
 
       // If EndTurn transitions to EndTurn state, advance to next player
       if (machine.currentState === TurnState.EndTurn) {
@@ -346,6 +605,13 @@ export function autoRollForPlayer(state: GameState): GameState {
     const diceResult = rollDice();
     machine.rolledDoubles = diceResult.isDoubles;
 
+    state.lastDiceResult = {
+      die1: diceResult.die1,
+      die2: diceResult.die2,
+      total: diceResult.total,
+      isDoubles: diceResult.isDoubles,
+    };
+
     if (player.jailStatus.inJail) {
       const jailResult = rollInJail(state, player.id, diceResult);
       state = jailResult.state;
@@ -362,13 +628,13 @@ export function autoRollForPlayer(state: GameState): GameState {
 
     if (!moveResult.sentToJail) {
       const currentPlayer = getActivePlayer(state);
-      const resolution = resolveSpace(state, currentPlayer.id);
+      const resolution = resolveSpace(state, currentPlayer.id, diceResult);
       state = applySpaceResolution(state, currentPlayer.id, resolution);
 
       machine.transition({ type: 'RollDice' }, {});
       machine.transition(
         { type: 'RollDice' },
-        { landedOnUnownedProperty: resolution.type === 'unowned_property' },
+        { landedOnUnownedProperty: resolution.type === 'unownedProperty' },
       );
     } else {
       machine.transition({ type: 'RollDice' }, {});

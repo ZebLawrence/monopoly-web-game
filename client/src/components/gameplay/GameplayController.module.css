@@ -1,0 +1,85 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.stateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.activePlayerBadge {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg);
+  color: var(--color-text-secondary);
+}
+
+.activePlayerBadgeYou {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  box-shadow: 0 0 0 2px #90caf9;
+  animation: glow 2s ease infinite;
+}
+
+.actionRow {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.rollButton {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  min-height: 44px;
+}
+
+.rollButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.rollButton:active {
+  transform: translateY(0);
+}
+
+.endTurnButton {
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--color-primary);
+  transition: all var(--transition-fast);
+  min-height: 44px;
+}
+
+.endTurnButton:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px #90caf9;
+  }
+  50% {
+    box-shadow: 0 0 0 4px #90caf9, 0 0 12px rgba(33, 150, 243, 0.3);
+  }
+}

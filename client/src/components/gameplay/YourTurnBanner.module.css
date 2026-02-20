@@ -1,0 +1,52 @@
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  pointer-events: none;
+  animation: slideDown 0.4s ease, fadeOut 0.4s ease 2s forwards;
+}
+
+.text {
+  background: linear-gradient(135deg, var(--color-primary), #1565c0);
+  color: #fff;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  box-shadow: var(--shadow-lg);
+  animation: pop 0.3s ease 0.1s both;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.8);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

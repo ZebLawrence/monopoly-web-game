@@ -1,0 +1,90 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.diceRow {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.die {
+  width: 56px;
+  height: 56px;
+  background-color: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 8px;
+  transition: transform 0.15s ease;
+}
+
+.dieRolling {
+  animation: shake 0.08s infinite alternate;
+}
+
+.dieGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+}
+
+.dotSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dotFilled::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background-color: #1a1a1a;
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+
+.doublesBadge {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: #fff;
+  background-color: #e65100;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  animation: pop 0.3s ease;
+}
+
+@keyframes shake {
+  from {
+    transform: rotate(-8deg) scale(1.05);
+  }
+  to {
+    transform: rotate(8deg) scale(1.05);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

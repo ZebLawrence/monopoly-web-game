@@ -15,7 +15,14 @@ export { DEFAULT_GAME_SETTINGS } from './types/gameSettings';
 export { GameEventType } from './types/gameEvent';
 export type { GameEvent } from './types/gameEvent';
 export type { GameAction, TradeOfferPayload } from './types/gameAction';
-export type { GameState, GameStatus, DeckState } from './types/gameState';
+export type {
+  GameState,
+  GameStatus,
+  DeckState,
+  DiceResultState,
+  PendingBuyDecision,
+  LastResolution,
+} from './types/gameState';
 export type {
   ClientToServerEvents,
   ServerToClientEvents,

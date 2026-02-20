@@ -1,0 +1,44 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.propertyPreview {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.priceTag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-lg);
+}
+
+.priceLabel {
+  color: var(--color-text-secondary);
+}
+
+.priceValue {
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+
+.cantAfford {
+  color: var(--color-danger, #d32f2f);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.actions > * {
+  flex: 1;
+}

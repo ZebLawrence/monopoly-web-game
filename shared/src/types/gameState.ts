@@ -12,6 +12,28 @@ export interface DeckState {
   communityChest: Card[];
 }
 
+export interface DiceResultState {
+  die1: number;
+  die2: number;
+  total: number;
+  isDoubles: boolean;
+}
+
+export interface PendingBuyDecision {
+  spaceId: number;
+  spaceName: string;
+  cost: number;
+}
+
+export interface LastResolution {
+  type: string;
+  spaceName: string;
+  amount?: number;
+  ownerId?: string;
+  ownerName?: string;
+  deckName?: 'chance' | 'communityChest';
+}
+
 export interface GameState {
   gameId: string;
   status: GameStatus;
@@ -22,4 +44,9 @@ export interface GameState {
   turnState: TurnState;
   settings: GameSettings;
   events: GameEvent[];
+  lastDiceResult?: DiceResultState | null;
+  lastCardDrawn?: Card | null;
+  pendingBuyDecision?: PendingBuyDecision | null;
+  lastResolution?: LastResolution | null;
+  doublesCount?: number;
 }
