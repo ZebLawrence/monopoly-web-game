@@ -139,10 +139,17 @@ export function BankruptcyModal({
         <div className={styles.body}>
           {/* Debt Summary */}
           <div className={styles.debtSummary}>
-            <div>
-              <div className={styles.debtLabel}>Amount Owed</div>
-              <div className={styles.debtAmount}>${debtAmount.toLocaleString()}</div>
-            </div>
+            {debtAmount > 0 ? (
+              <div>
+                <div className={styles.debtLabel}>Amount Owed</div>
+                <div className={styles.debtAmount}>${debtAmount.toLocaleString()}</div>
+              </div>
+            ) : (
+              <div>
+                <div className={styles.debtLabel}>Shortfall</div>
+                <div className={styles.debtAmount}>${Math.abs(player.cash).toLocaleString()}</div>
+              </div>
+            )}
             <div>
               <div className={styles.debtLabel}>Your Cash</div>
               <div className={styles.cashAmount}>${player.cash.toLocaleString()}</div>

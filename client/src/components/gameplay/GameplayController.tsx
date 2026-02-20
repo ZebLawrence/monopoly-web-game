@@ -34,6 +34,7 @@ export function GameplayController({
   const [buyDismissed, setBuyDismissed] = useState(false);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
   const [feedFilter, setFeedFilter] = useState<'all' | 'mine'>('all');
+  const [bankruptcyDismissed, setBankruptcyDismissed] = useState(false);
 
   const activePlayer = gameState.players[gameState.currentPlayerIndex];
   const localPlayer = gameState.players.find((p) => p.id === localPlayerId);
@@ -41,6 +42,33 @@ export function GameplayController({
   const isInJail = activePlayer?.jailStatus?.inJail ?? false;
   const isSpectator = localPlayer?.isBankrupt ?? false;
   const isGameFinished = gameState.status === 'finished';
+
+  // Auto-trigger bankruptcy modal when player cash goes negative
+  const playerCash = localPlayer?.cash ?? 0;
+  useMemo(() => {
+    if (playerCash < 0 && !isSpectator) {
+      setShowBankruptcy(true);
+      setBankruptcyDismissed(false);
+    } else if (playerCash >= 0) {
+      setShowBankruptcy(false);
+      setBankruptcyDismissed(false);
+    }
+  }, [playerCash, isSpectator]);
+
+  // Compute debt info from lastResolution
+  const debtInfo = useMemo(() => {
+    const resolution = gameState.lastResolution;
+    if (!resolution || !localPlayer || localPlayer.cash >= 0) {
+      return { debtAmount: 0, creditorId: 'bank' as string | 'bank' };
+    }
+    // The engine already deducted the amount, making cash negative.
+    // debtAmount = 0 means "you need to get cash to $0"
+    // The modal math: remainingDebt = 0 - negativeCash = |cash|
+    if (resolution.type === 'rentPayment' && resolution.ownerId) {
+      return { debtAmount: 0, creditorId: resolution.ownerId };
+    }
+    return { debtAmount: 0, creditorId: 'bank' as const };
+  }, [gameState.lastResolution, localPlayer]);
 
   // Reset card/buy dismissal when context changes
   const cardKey = gameState.lastCardDrawn?.id ?? null;
@@ -204,6 +232,7 @@ export function GameplayController({
       <SpaceNotification
         resolution={gameState.lastResolution}
         localPlayerName={localPlayer?.name ?? ''}
+        passedGo={gameState.lastPassedGo}
       />
 
       {/* Turn State Label */}
@@ -319,14 +348,19 @@ export function GameplayController({
       )}
 
       {/* Bankruptcy Modal */}
-      {showBankruptcy && localPlayer && (
+      {showBankruptcy && !bankruptcyDismissed && localPlayer && localPlayer.cash < 0 && (
         <BankruptcyModal
           gameState={gameState}
           player={localPlayer}
-          debtAmount={0}
-          creditorId="bank"
+          debtAmount={debtInfo.debtAmount}
+          creditorId={debtInfo.creditorId}
           emitAction={emitAction}
-          onClose={() => setShowBankruptcy(false)}
+          onClose={() => {
+            if (localPlayer.cash >= 0) {
+              setShowBankruptcy(false);
+            }
+            setBankruptcyDismissed(true);
+          }}
         />
       )}
 
