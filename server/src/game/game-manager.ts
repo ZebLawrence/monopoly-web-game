@@ -18,6 +18,7 @@ import {
   mortgageProperty,
   unmortgageProperty,
   createTradeOffer,
+  storeTrade,
   acceptTrade,
   rejectTrade,
   counterTrade,
@@ -28,10 +29,12 @@ import {
   applyCardEffect,
   getActivePlayer,
   getPlayerById,
+  getSpaceById,
   isGameOver,
   declareBankruptcy,
   TurnStateMachine,
   getConsecutiveDoubles,
+  GameEventType,
   type PlayerSetup,
   type GameAction,
   type GameState,
@@ -63,6 +66,20 @@ export function deleteTurnMachine(gameId: string): void {
   turnMachines.delete(gameId);
 }
 
+let _eventCounter = 0;
+
+function addEvent(state: GameState, type: GameEventType, payload: Record<string, unknown>): void {
+  if (!state.events) state.events = [];
+  _eventCounter++;
+  state.events.push({
+    id: `evt-${_eventCounter}`,
+    gameId: state.gameId,
+    type,
+    payload,
+    timestamp: Date.now(),
+  });
+}
+
 export function initializeGame(room: RoomMetadata): GameState {
   const players: PlayerSetup[] = room.players.map((p) => ({
     id: p.id,
@@ -81,6 +98,9 @@ export function initializeGame(room: RoomMetadata): GameState {
   // Create turn machine for this game
   const machine = new TurnStateMachine(TurnState.WaitingForRoll);
   turnMachines.set(state.gameId, machine);
+
+  addEvent(state, GameEventType.GameStarted, {});
+  addEvent(state, GameEventType.TurnStarted, { playerId: state.players[0].id });
 
   return state;
 }
@@ -157,11 +177,35 @@ function handlePostRollResolution(
   const resolution = resolveSpace(state, currentPlayer.id, diceResult);
   state = applySpaceResolution(state, currentPlayer.id, resolution);
 
+  // Emit events for space resolution
+  if (resolution.type === 'tax') {
+    addEvent(state, GameEventType.TaxPaid, {
+      playerId: currentPlayer.id,
+      amount: resolution.taxAmount,
+      spaceName: resolution.space.name,
+    });
+  } else if (resolution.type === 'rentPayment' && resolution.ownerId) {
+    addEvent(state, GameEventType.RentPaid, {
+      payerId: currentPlayer.id,
+      receiverId: resolution.ownerId,
+      amount: resolution.rentAmount,
+      spaceName: resolution.space.name,
+    });
+  } else if (resolution.type === 'goToJail') {
+    addEvent(state, GameEventType.PlayerJailed, { playerId: currentPlayer.id });
+  }
+
   // Handle card drawing
   if (resolution.type === 'drawCard' && resolution.deckName) {
     const drawResult = drawCard(state, resolution.deckName);
     state = drawResult.state;
     state.lastCardDrawn = drawResult.card;
+
+    addEvent(state, GameEventType.CardDrawn, {
+      playerId: currentPlayer.id,
+      cardText: drawResult.card.text,
+      deck: resolution.deckName,
+    });
 
     // Apply card effect
     const effectResult = applyCardEffect(state, currentPlayer.id, drawResult.card, diceResult);
@@ -268,6 +312,14 @@ function applyAction(
       state.doublesCount = getConsecutiveDoubles(state, playerId) + (diceResult.isDoubles ? 1 : 0);
       state.lastCardDrawn = null;
 
+      addEvent(state, GameEventType.DiceRolled, {
+        playerId,
+        die1: diceResult.die1,
+        die2: diceResult.die2,
+        total: diceResult.total,
+        isDoubles: diceResult.isDoubles,
+      });
+
       const player = getActivePlayer(state);
 
       // Check if in jail
@@ -348,6 +400,7 @@ function applyAction(
           spaceName: 'Go',
           amount: 200,
         };
+        addEvent(state, GameEventType.PassedGo, { playerId: player.id, amount: 200 });
       }
 
       state = handlePostRollResolution(state, player.id, diceResult, machine, action);
@@ -424,9 +477,16 @@ function applyAction(
 
     case 'BuyProperty': {
       machine.transition(action);
+      const space = getSpaceById(state, action.propertyId);
       state = buyProperty(state, playerId, action.propertyId);
       state.pendingBuyDecision = null;
       state.lastResolution = null;
+      addEvent(state, GameEventType.PropertyPurchased, {
+        playerId,
+        propertyId: action.propertyId,
+        spaceName: space?.name ?? 'Unknown',
+        price: space?.cost ?? 0,
+      });
       return state;
     }
 
@@ -467,7 +527,15 @@ function applyAction(
     case 'BuildHouse':
     case 'BuildHotel': {
       machine.transition(action);
-      return buildHouse(state, playerId, action.propertyId);
+      const bSpace = getSpaceById(state, action.propertyId);
+      state = buildHouse(state, playerId, action.propertyId);
+      addEvent(state, GameEventType.HouseBuilt, {
+        playerId,
+        propertyId: action.propertyId,
+        spaceName: bSpace?.name ?? 'Unknown',
+        buildingType: action.type === 'BuildHotel' ? 'hotel' : 'house',
+      });
+      return state;
     }
 
     case 'SellBuilding': {
@@ -477,22 +545,38 @@ function applyAction(
 
     case 'MortgageProperty': {
       machine.transition(action);
-      return mortgageProperty(state, playerId, action.propertyId);
+      state = mortgageProperty(state, playerId, action.propertyId);
+      addEvent(state, GameEventType.PropertyMortgaged, {
+        playerId,
+        propertyId: action.propertyId,
+      });
+      return state;
     }
 
     case 'UnmortgageProperty': {
       machine.transition(action);
-      return unmortgageProperty(state, playerId, action.propertyId);
+      state = unmortgageProperty(state, playerId, action.propertyId);
+      addEvent(state, GameEventType.PropertyUnmortgaged, {
+        playerId,
+        propertyId: action.propertyId,
+      });
+      return state;
     }
 
     case 'ProposeTrade': {
       machine.transition(action);
-      const trade = createTradeOffer(state, playerId, action.recipientId, action.offer);
-      return trade.state;
+      const tradeResult = createTradeOffer(state, playerId, action.recipientId, action.offer);
+      storeTrade(tradeResult.trade);
+      return tradeResult.state;
     }
 
     case 'AcceptTrade': {
-      return acceptTrade(state, action.tradeId);
+      state = acceptTrade(state, action.tradeId);
+      addEvent(state, GameEventType.TradeCompleted, {
+        tradeId: action.tradeId,
+        playerId,
+      });
+      return state;
     }
 
     case 'RejectTrade': {
@@ -500,8 +584,9 @@ function applyAction(
     }
 
     case 'CounterTrade': {
-      const trade = counterTrade(state, action.tradeId, action.offer);
-      return trade.state;
+      const counterResult = counterTrade(state, action.tradeId, action.offer);
+      storeTrade(counterResult.trade);
+      return counterResult.state;
     }
 
     case 'PayJailFine': {
@@ -527,6 +612,10 @@ function applyAction(
 
     case 'DeclareBankruptcy': {
       state = declareBankruptcy(state, playerId, action.creditorId);
+      addEvent(state, GameEventType.PlayerBankrupt, {
+        playerId,
+        creditorId: action.creditorId,
+      });
 
       // Clear transient UI state
       state.lastDiceResult = null;
@@ -539,6 +628,11 @@ function applyAction(
       if (activePlayer && (activePlayer.isBankrupt || !activePlayer.isActive)) {
         state = advanceToNextPlayer(state);
         machine.currentState = TurnState.WaitingForRoll;
+      }
+
+      // Check if game is over
+      if (isGameOver(state)) {
+        addEvent(state, GameEventType.GameEnded, {});
       }
 
       return state;
@@ -562,6 +656,10 @@ function applyAction(
         machine.currentState = TurnState.WaitingForRoll;
       }
       // If rolled doubles, machine goes back to WaitingForRoll for same player
+
+      // Emit turn started for next player
+      const nextPlayer = getActivePlayer(state);
+      addEvent(state, GameEventType.TurnStarted, { playerId: nextPlayer.id });
 
       return state;
     }
