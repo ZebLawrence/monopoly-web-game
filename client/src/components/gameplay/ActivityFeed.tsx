@@ -46,7 +46,7 @@ export function formatEventMessage(event: GameEvent, players: Player[]): string 
     case GameEventType.PlayerMoved:
       return `${name} moved to space ${p.toPosition}`;
     case GameEventType.PropertyPurchased:
-      return `${name} bought a property for $${p.price}`;
+      return `${name} bought ${p.spaceName ?? 'a property'} for $${p.price}`;
     case GameEventType.RentPaid:
       return `${getPlayerName(players, p.payerId as string)} paid $${p.amount} rent to ${getPlayerName(players, p.receiverId as string)}`;
     case GameEventType.CardDrawn:
@@ -56,17 +56,17 @@ export function formatEventMessage(event: GameEvent, players: Player[]): string 
     case GameEventType.PlayerFreed:
       return `${name} got out of Jail`;
     case GameEventType.TaxPaid:
-      return `${name} paid $${p.amount} in tax`;
+      return `${name} paid $${p.amount} in ${p.spaceName ?? 'tax'}`;
     case GameEventType.PassedGo:
       return `${name} passed Go and collected $200`;
     case GameEventType.PlayerBankrupt:
       return `${name} went bankrupt!`;
     case GameEventType.HouseBuilt:
-      return `${name} built a ${p.buildingType === 'hotel' ? 'hotel' : 'house'}`;
+      return `${name} built a ${p.buildingType === 'hotel' ? 'hotel' : 'house'} on ${p.spaceName ?? 'a property'}`;
     case GameEventType.PropertyMortgaged:
       return `${name} mortgaged a property`;
     case GameEventType.TradeCompleted:
-      return `Trade completed between players`;
+      return `${name} completed a trade`;
     case GameEventType.AuctionStarted:
       return `Auction started!`;
     case GameEventType.GameStarted:
