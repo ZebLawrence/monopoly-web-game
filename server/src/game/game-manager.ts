@@ -272,7 +272,8 @@ function handlePostRollResolution(
   // Transition through Rolling -> Resolving
   machine.transition(action, {}); // auto to Resolving
 
-  const landedOnUnownedProperty = resolution.type === 'unownedProperty';
+  // pendingBuyDecision can be set by direct landing OR by a card effect
+  const landedOnUnownedProperty = !!state.pendingBuyDecision;
   machine.transition(action, { landedOnUnownedProperty });
 
   return state;

@@ -17,7 +17,7 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:3000';
 
 let redisRef: RedisClient | null = null;
 
-export function createApp(redis?: RedisClient) {
+export function createApp(redis?: RedisClient): ReturnType<typeof express> {
   const app = express();
 
   app.use(cors({ origin: CLIENT_ORIGIN }));
