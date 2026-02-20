@@ -13,6 +13,7 @@ export default tseslint.config(
       "**/.next/**",
       "**/coverage/**",
       "client/next.config.ts",
+      "client/next-env.d.ts",
     ],
   },
   {
