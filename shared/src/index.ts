@@ -16,7 +16,14 @@ export { GameEventType } from './types/gameEvent';
 export type { GameEvent } from './types/gameEvent';
 export type { GameAction, TradeOfferPayload } from './types/gameAction';
 export type { GameState, GameStatus, DeckState } from './types/gameState';
-export type { ClientToServerEvents, ServerToClientEvents } from './types/socketEvents';
+export type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData,
+  RoomPlayer,
+  RoomMetadata,
+} from './types/socketEvents';
 
 // Engine
 export * from './engine';
