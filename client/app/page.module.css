@@ -22,7 +22,53 @@
 .subtitle {
   font-size: var(--text-lg);
   color: rgba(255, 255, 255, 0.8);
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--space-8);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-8);
+  width: 100%;
+  max-width: 320px;
+}
+
+.nameInput {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-lg);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  text-align: center;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.nameInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.nameInput:focus {
+  border-color: #ffffff;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: var(--text-sm);
+  margin-top: var(--space-2);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button:disabled:hover {
+  transform: none;
 }
 
 .buttonGroup {
