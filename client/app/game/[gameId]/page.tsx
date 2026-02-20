@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { use, useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { TurnState, GameEventType, SpaceType } from '@monopoly/shared';
 import type { Property, TradeOfferPayload } from '@monopoly/shared';
 import { GameStateProvider, useGameState } from '../../../src/hooks/useGameState';
@@ -25,13 +25,18 @@ export default function GamePage({ params }: { params: Promise<{ gameId: string 
 
   return (
     <GameStateProvider>
-      <GameContent gameId={gameId} />
+      <Suspense fallback={<LoadingSkeleton />}>
+        <GameContent gameId={gameId} />
+      </Suspense>
     </GameStateProvider>
   );
 }
 
 function GameContent({ gameId }: { gameId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const roomParam = searchParams.get('room');
+  const pidParam = searchParams.get('pid');
   const {
     connected,
     playerId,
@@ -42,17 +47,38 @@ function GameContent({ gameId }: { gameId: string }) {
     turnTimer,
     emitAction,
     socket,
+    dispatch,
   } = useGameState();
+
+  // --- Auto-reconnect when arriving from lobby ---
+  const [reconnectAttempted, setReconnectAttempted] = useState(false);
+
+  useEffect(() => {
+    if (connected && roomParam && pidParam && !gameState && !reconnectAttempted) {
+      setReconnectAttempted(true);
+      socket.reconnect(roomParam, pidParam).then((result) => {
+        if (result.ok) {
+          dispatch({ type: 'SET_ROOM', room: result.room ?? null, roomCode: roomParam });
+          if (result.gameState) {
+            dispatch({ type: 'STATE_UPDATE', state: result.gameState });
+          }
+        }
+      });
+    }
+  }, [connected, roomParam, pidParam, gameState, reconnectAttempted, socket, dispatch]);
 
   // --- Local UI state (hooks must be called unconditionally) ---
   const [showBuildingManager, setShowBuildingManager] = useState(false);
   const [showMortgageManager, setShowMortgageManager] = useState(false);
   const [showTradeBuilder, setShowTradeBuilder] = useState(false);
 
+  // Effective room code — from context state or URL param
+  const effectiveRoomCode = roomCode || roomParam;
+
   // --- Derived state ---
   const currentPlayer = gameState?.players[gameState.currentPlayerIndex] ?? null;
-  const localPlayer = gameState?.players.find((p) => p.id === playerId) ?? null;
-  const isMyTurn = !!(currentPlayer && currentPlayer.id === playerId);
+  const localPlayer = gameState?.players.find((p) => p.id === (playerId || pidParam)) ?? null;
+  const isMyTurn = !!(currentPlayer && currentPlayer.id === (playerId || pidParam));
   const isPlayerAction = gameState?.turnState === TurnState.PlayerAction;
   const isAuction = gameState?.turnState === TurnState.Auction;
   const showAssetManagement = isMyTurn && isPlayerAction && !localPlayer?.isBankrupt;
@@ -183,30 +209,32 @@ function GameContent({ gameId }: { gameId: string }) {
 
   const handleSendChat = useCallback(
     (message: string) => {
-      if (roomCode) {
-        socket.sendChatMessage(roomCode, message);
+      if (effectiveRoomCode) {
+        socket.sendChatMessage(effectiveRoomCode, message);
       }
     },
-    [socket, roomCode],
+    [socket, effectiveRoomCode],
   );
 
   const handlePlayAgain = useCallback(() => {
-    if (roomCode) {
-      router.push(`/lobby/${roomCode}`);
+    if (effectiveRoomCode) {
+      router.push(`/lobby/${effectiveRoomCode}`);
     } else {
       router.push('/');
     }
-  }, [router, roomCode]);
+  }, [router, effectiveRoomCode]);
 
   const handleLeave = useCallback(() => {
     router.push('/');
   }, [router]);
 
   const handleRetryConnection = useCallback(() => {
-    if (roomCode && playerId) {
-      socket.reconnect(roomCode, playerId);
+    const code = effectiveRoomCode;
+    const pid = playerId || pidParam;
+    if (code && pid) {
+      socket.reconnect(code, pid);
     }
-  }, [socket, roomCode, playerId]);
+  }, [socket, effectiveRoomCode, playerId, pidParam]);
 
   // --- Loading / error states ---
   if (!gameState && connected) {
@@ -220,6 +248,8 @@ function GameContent({ gameId }: { gameId: string }) {
   if (!gameState) {
     return <LoadingSkeleton />;
   }
+
+  const effectivePlayerId = playerId || pidParam;
 
   // --- Main game UI ---
   return (
@@ -235,7 +265,11 @@ function GameContent({ gameId }: { gameId: string }) {
       />
 
       {/* P1.S3.T3: Gameplay controller (dice, buy/decline, jail, cards, activity feed) */}
-      <GameplayController gameState={gameState} localPlayerId={playerId} emitAction={emitAction} />
+      <GameplayController
+        gameState={gameState}
+        localPlayerId={effectivePlayerId}
+        emitAction={emitAction}
+      />
 
       {/* P1.S3.T4: Building & Mortgage managers (only during PlayerAction phase, local player's turn) */}
       {localPlayer && (
@@ -295,7 +329,7 @@ function GameContent({ gameId }: { gameId: string }) {
           isOpen={showTradeBuilder}
           currentPlayer={localPlayer}
           otherPlayers={gameState.players.filter(
-            (p) => p.id !== playerId && p.isActive && !p.isBankrupt,
+            (p) => p.id !== effectivePlayerId && p.isActive && !p.isBankrupt,
           )}
           properties={properties}
           onSendOffer={handleSendTradeOffer}
@@ -304,12 +338,12 @@ function GameContent({ gameId }: { gameId: string }) {
       )}
 
       {/* P1.S3.T6: Auction Panel */}
-      {isAuction && auctionData && playerId && (
+      {isAuction && auctionData && effectivePlayerId && (
         <AuctionPanel
           isOpen
           space={auctionData.space}
           auction={auctionData.info}
-          currentPlayerId={playerId}
+          currentPlayerId={effectivePlayerId}
           players={gameState.players}
           onBid={handleAuctionBid}
           onPass={handleAuctionPass}
@@ -317,7 +351,11 @@ function GameContent({ gameId }: { gameId: string }) {
       )}
 
       {/* P1.S3.T7: Chat Panel */}
-      <ChatPanel messages={chatMessages} localPlayerId={playerId} onSendMessage={handleSendChat} />
+      <ChatPanel
+        messages={chatMessages}
+        localPlayerId={effectivePlayerId}
+        onSendMessage={handleSendChat}
+      />
 
       {/* P1.S3.T8: Victory Screen */}
       {gameOverData && (

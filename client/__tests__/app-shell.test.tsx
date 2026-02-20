@@ -10,14 +10,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-// Mock useGameSocket
-const mockCreateRoom = vi.fn();
-vi.mock('@/src/hooks/useGameSocket', () => ({
-  useGameSocket: () => ({
-    createRoom: mockCreateRoom,
-  }),
-}));
-
 describe('Home Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,38 +32,65 @@ describe('Home Page', () => {
     expect(createBtn).toBeDisabled();
   });
 
-  it('Join Game button is disabled when name is empty', () => {
+  it('Join Game button is disabled when inputs are empty', () => {
     render(<Home />);
     const joinBtn = screen.getByText('Join Game');
     expect(joinBtn).toBeDisabled();
   });
 
-  it('enables buttons when a name is entered', () => {
+  it('enables Create Game button when name is entered', () => {
     render(<Home />);
     const nameInput = screen.getByPlaceholderText('Enter your name');
     fireEvent.change(nameInput, { target: { value: 'Alice' } });
     expect(screen.getByText('Create Game')).not.toBeDisabled();
+  });
+
+  it('enables Join Game button when room code and name are entered', () => {
+    render(<Home />);
+    const roomInput = screen.getByPlaceholderText('Room code');
+    const nameInput = screen.getByPlaceholderText('Your name');
+    fireEvent.change(roomInput, { target: { value: 'ABC123' } });
+    fireEvent.change(nameInput, { target: { value: 'Bob' } });
     expect(screen.getByText('Join Game')).not.toBeDisabled();
   });
 
-  it('Join Game navigates to /lobby/join', () => {
-    render(<Home />);
-    const nameInput = screen.getByPlaceholderText('Enter your name');
-    fireEvent.change(nameInput, { target: { value: 'Alice' } });
-    fireEvent.click(screen.getByText('Join Game'));
-    expect(mockPush).toHaveBeenCalledWith('/lobby/join');
-  });
-
-  it('Create Game calls createRoom and navigates on success', async () => {
-    mockCreateRoom.mockResolvedValue({ ok: true, roomCode: 'ABC123' });
+  it('Create Game navigates to /lobby/create with name param', () => {
     render(<Home />);
     const nameInput = screen.getByPlaceholderText('Enter your name');
     fireEvent.change(nameInput, { target: { value: 'Alice' } });
     fireEvent.click(screen.getByText('Create Game'));
-    await vi.waitFor(() => {
-      expect(mockCreateRoom).toHaveBeenCalledWith('Alice');
-      expect(mockPush).toHaveBeenCalledWith('/lobby/ABC123');
-    });
+    expect(mockPush).toHaveBeenCalledWith('/lobby/create?name=Alice');
+  });
+
+  it('Join Game navigates to /lobby/{code} with name param', () => {
+    render(<Home />);
+    const roomInput = screen.getByPlaceholderText('Room code');
+    const nameInput = screen.getByPlaceholderText('Your name');
+    fireEvent.change(roomInput, { target: { value: 'abc123' } });
+    fireEvent.change(nameInput, { target: { value: 'Bob' } });
+    fireEvent.click(screen.getByText('Join Game'));
+    expect(mockPush).toHaveBeenCalledWith('/lobby/ABC123?name=Bob');
+  });
+
+  it('has data-testid attributes for E2E tests', () => {
+    render(<Home />);
+    expect(screen.getByTestId('create-game-form')).toBeInTheDocument();
+    expect(screen.getByTestId('join-game-form')).toBeInTheDocument();
+  });
+
+  it('create-game-form has text input and submit button', () => {
+    render(<Home />);
+    const form = screen.getByTestId('create-game-form');
+    expect(form.querySelector('input[type="text"]')).toBeInTheDocument();
+    expect(form.querySelector('button[type="submit"]')).toBeInTheDocument();
+  });
+
+  it('join-game-form has two text inputs and submit button', () => {
+    render(<Home />);
+    const form = screen.getByTestId('join-game-form');
+    const inputs = form.querySelectorAll('input[type="text"]');
+    expect(inputs).toHaveLength(2);
+    expect(form.querySelector('button[type="submit"]')).toBeInTheDocument();
   });
 });
 

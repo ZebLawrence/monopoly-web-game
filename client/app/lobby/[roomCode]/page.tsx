@@ -1,8 +1,8 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import type { TokenType } from '@monopoly/shared';
+import { use, useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import type { TokenType, RoomMetadata } from '@monopoly/shared';
 import { GameStateProvider, useGameState } from '@/src/hooks/useGameState';
 import { JoinGameForm, WaitingRoom, NameEntryModal } from '@/src/components/lobby/Lobby';
 import { ConnectionError } from '@/src/components/connection/ConnectionError';
@@ -11,9 +11,12 @@ import { TokenSelector } from '@/src/components/ui/TokenSelector';
 
 function LobbyContent({ roomCode }: { roomCode: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nameParam = searchParams.get('name');
   const { connected, playerId, room, gameState, lastError, socket, dispatch } = useGameState();
   const [joinError, setJoinError] = useState<string | null>(null);
   const [wasConnected, setWasConnected] = useState(false);
+  const [autoAction, setAutoAction] = useState<'idle' | 'pending' | 'done'>('idle');
 
   // Track whether we were ever connected (to distinguish initial load from disconnect)
   useEffect(() => {
@@ -23,9 +26,71 @@ function LobbyContent({ roomCode }: { roomCode: string }) {
   // P1.S2.T6: Navigate all clients to game page on gameStarted
   useEffect(() => {
     if (gameState?.gameId) {
-      router.push(`/game/${gameState.gameId}`);
+      const code = room?.roomCode || roomCode;
+      const pid = playerId || '';
+      router.push(`/game/${gameState.gameId}?room=${code}&pid=${pid}`);
     }
-  }, [gameState, router]);
+  }, [gameState, router, room, roomCode, playerId]);
+
+  // Auto-create room when roomCode === 'create' and name param exists
+  useEffect(() => {
+    if (connected && roomCode === 'create' && nameParam && autoAction === 'idle' && playerId) {
+      setAutoAction('pending');
+      socket.createRoom(nameParam).then((result) => {
+        if (result.ok && result.roomCode) {
+          const realRoomCode = result.roomCode;
+          // Update URL without full page navigation
+          window.history.replaceState(null, '', `/lobby/${realRoomCode}`);
+          // Construct room metadata (we just created it, so we know the shape)
+          const newRoom: RoomMetadata = {
+            roomCode: realRoomCode,
+            hostId: playerId,
+            players: [
+              {
+                id: playerId,
+                name: nameParam,
+                isHost: true,
+                isReady: false,
+                isConnected: true,
+              },
+            ],
+            maxPlayers: 4,
+            startingCash: 1500,
+            status: 'waiting',
+            createdAt: Date.now(),
+          };
+          dispatch({ type: 'SET_ROOM', room: newRoom, roomCode: realRoomCode });
+          setAutoAction('done');
+        } else {
+          setJoinError(result.error || 'Failed to create room');
+          setAutoAction('done');
+        }
+      });
+    }
+  }, [connected, roomCode, nameParam, autoAction, playerId, socket, dispatch]);
+
+  // Auto-join room when name param exists and we have a real room code
+  useEffect(() => {
+    if (
+      connected &&
+      nameParam &&
+      !room &&
+      autoAction === 'idle' &&
+      roomCode !== 'join' &&
+      roomCode !== 'create'
+    ) {
+      setAutoAction('pending');
+      socket.joinRoom(roomCode, nameParam).then((result) => {
+        if (result.ok) {
+          dispatch({ type: 'SET_ROOM', room: result.room ?? null, roomCode });
+          setAutoAction('done');
+        } else {
+          setJoinError(result.error || 'Failed to join room');
+          setAutoAction('done');
+        }
+      });
+    }
+  }, [connected, nameParam, room, autoAction, roomCode, socket, dispatch]);
 
   // P1.S2.T2: roomCode === 'join' → render JoinGameForm
   if (roomCode === 'join') {
@@ -37,6 +102,15 @@ function LobbyContent({ roomCode }: { roomCode: string }) {
     return (
       <main style={{ padding: 'var(--space-4)', textAlign: 'center' }}>
         <p>Connecting to server...</p>
+      </main>
+    );
+  }
+
+  // Auto-action in progress — show loading
+  if (autoAction === 'pending') {
+    return (
+      <main style={{ padding: 'var(--space-4)', textAlign: 'center' }}>
+        <p>{roomCode === 'create' ? 'Creating room...' : 'Joining room...'}</p>
       </main>
     );
   }
@@ -85,7 +159,8 @@ function LobbyContent({ roomCode }: { roomCode: string }) {
     .map((p) => p.token!);
 
   const handleTokenSelect = async (token: TokenType) => {
-    const result = await socket.selectToken(roomCode, token);
+    const currentRoomCode = room.roomCode ?? roomCode;
+    const result = await socket.selectToken(currentRoomCode, token);
     if (!result.ok) {
       dispatch({ type: 'ACTION_ERROR', message: result.error || 'Failed to select token' });
     }
@@ -93,7 +168,8 @@ function LobbyContent({ roomCode }: { roomCode: string }) {
 
   // P1.S2.T6: Wire host's Start Game button
   const handleStartGame = async () => {
-    const result = await socket.startGame(roomCode);
+    const currentRoomCode = room.roomCode ?? roomCode;
+    const result = await socket.startGame(currentRoomCode);
     if (!result.ok) {
       dispatch({ type: 'ACTION_ERROR', message: result.error || 'Failed to start game' });
     }
@@ -102,7 +178,7 @@ function LobbyContent({ roomCode }: { roomCode: string }) {
   return (
     <>
       <WaitingRoom
-        roomCode={roomCode}
+        roomCode={room.roomCode ?? roomCode}
         players={players}
         isHost={isHost}
         onStartGame={handleStartGame}
@@ -123,12 +199,26 @@ function LobbyContent({ roomCode }: { roomCode: string }) {
   );
 }
 
+function LobbyInner({ roomCode }: { roomCode: string }) {
+  return (
+    <Suspense
+      fallback={
+        <main style={{ padding: 'var(--space-4)', textAlign: 'center' }}>
+          <p>Loading...</p>
+        </main>
+      }
+    >
+      <LobbyContent roomCode={roomCode} />
+    </Suspense>
+  );
+}
+
 export default function LobbyPage({ params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = use(params);
 
   return (
     <GameStateProvider>
-      <LobbyContent roomCode={roomCode} />
+      <LobbyInner roomCode={roomCode} />
     </GameStateProvider>
   );
 }

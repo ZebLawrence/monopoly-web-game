@@ -68,6 +68,12 @@ export function useGameSocket(): UseGameSocketReturn {
 
     socketRef.current = socket;
 
+    // Expose socket for E2E testing (reconnection tests)
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).__socket = socket;
+    }
+
     socket.on('connect', () => {
       setConnected(true);
       setPlayerId(socket.id ?? null);
