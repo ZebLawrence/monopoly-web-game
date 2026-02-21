@@ -14,6 +14,24 @@ type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001';
 
+// Parse the server URL so socket.io connects to the correct origin + path.
+// When SERVER_URL has a pathname (e.g. https://example.com/api), socket.io-client
+// v4 would treat "/api" as a namespace and still poll on /socket.io/ — bypassing
+// the nginx /api/ proxy rule. Instead, pass the origin as the server and derive
+// the socket.io path from the pathname.
+function parseServerUrl(url: string): { origin: string; path: string } {
+  try {
+    const parsed = new URL(url);
+    const base = parsed.pathname.replace(/\/$/, ''); // strip trailing slash
+    const path = base ? `${base}/socket.io` : '/socket.io';
+    return { origin: `${parsed.protocol}//${parsed.host}`, path };
+  } catch {
+    return { origin: url, path: '/socket.io' };
+  }
+}
+
+const { origin: SERVER_ORIGIN, path: SOCKET_PATH } = parseServerUrl(SERVER_URL);
+
 export interface UseGameSocketReturn {
   socket: GameSocket | null;
   connected: boolean;
@@ -57,7 +75,8 @@ export function useGameSocket(): UseGameSocketReturn {
   const [playerId, setPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
-    const socket = io(SERVER_URL, {
+    const socket = io(SERVER_ORIGIN, {
+      path: SOCKET_PATH,
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: Infinity,
