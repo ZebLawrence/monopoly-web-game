@@ -65,6 +65,8 @@ export function createInitialGameState(
     turnState: TurnState.WaitingForRoll,
     settings,
     events: [],
+    pendingTrades: [],
+    propertyStates: {},
   };
 }
 

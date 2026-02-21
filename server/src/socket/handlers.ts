@@ -179,13 +179,33 @@ export function registerSocketHandlers(io: AppIO, socket: AppSocket, redis: Redi
   socket.on('chatMessage', async (data, callback) => {
     try {
       const playerId = socket.data.playerId ?? socket.id;
-      const playerName = socket.data.playerName ?? 'Unknown';
       const room = await redis.loadRoomMetadata(data.roomCode);
 
       if (!room) {
         callback({ ok: false, error: 'Room not found' });
         return;
       }
+
+      // Resolve player name: prefer room player list, then game state, then socket data
+      let playerName = socket.data.playerName ?? '';
+      if (!playerName) {
+        const roomPlayer = room.players.find(
+          (p: { id: string; name: string }) => p.id === playerId,
+        );
+        if (roomPlayer) playerName = roomPlayer.name;
+      }
+      if (!playerName && room.gameId) {
+        const raw = await redis.loadGameState(room.gameId);
+        if (raw) {
+          const gs = deserializeGameState(raw);
+          const gsPlayer = gs.players.find((p: { id: string; name: string }) => p.id === playerId);
+          if (gsPlayer) playerName = gsPlayer.name;
+        }
+      }
+      if (!playerName) playerName = 'Unknown';
+
+      // Update socket data with resolved name for future messages
+      if (playerName !== 'Unknown') socket.data.playerName = playerName;
 
       // Check if player is a spectator (bankrupt but still in room)
       let isSpectator = false;

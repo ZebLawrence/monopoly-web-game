@@ -458,6 +458,7 @@ function applyAction(
       state.pendingBuyDecision = null;
       if (state.settings.auctionEnabled) {
         startAuction(state, action.propertyId);
+        addEvent(state, GameEventType.AuctionStarted, { propertyId: action.propertyId });
       }
       return state;
     }
@@ -467,8 +468,14 @@ function applyAction(
       const auction = getAuction(state);
       if (!auction) throw new Error('No active auction');
       placeBid(state, playerId, action.amount);
+      addEvent(state, GameEventType.AuctionBid, { playerId, amount: action.amount, passed: false });
 
       if (isAuctionComplete(state)) {
+        addEvent(state, GameEventType.AuctionEnded, {
+          propertyId: auction.propertyId,
+          winnerId: auction.highBidderId,
+          winningBid: auction.highBid,
+        });
         state = resolveAuction(state);
         machine.transition(action, { auctionComplete: true });
       }
@@ -478,8 +485,15 @@ function applyAction(
     case 'AuctionPass': {
       machine.transition(action);
       passBid(state, playerId);
+      addEvent(state, GameEventType.AuctionBid, { playerId, passed: true });
 
       if (isAuctionComplete(state)) {
+        const passAuction = getAuction(state);
+        addEvent(state, GameEventType.AuctionEnded, {
+          propertyId: passAuction?.propertyId ?? null,
+          winnerId: passAuction?.highBidderId ?? null,
+          winningBid: passAuction?.highBid ?? 0,
+        });
         state = resolveAuction(state);
         machine.transition(action, { auctionComplete: true });
       }
@@ -676,11 +690,19 @@ export function autoEndTurnForPlayer(state: GameState): GameState {
       machine.currentState = TurnState.WaitingForRoll;
     }
 
+    state.lastDiceResult = null;
+    state.lastCardDrawn = null;
+    state.lastResolution = null;
+    state.pendingBuyDecision = null;
     state.turnState = machine.currentState;
     return state;
   } catch {
     state = advanceToNextPlayer(state);
     machine.currentState = TurnState.WaitingForRoll;
+    state.lastDiceResult = null;
+    state.lastCardDrawn = null;
+    state.lastResolution = null;
+    state.pendingBuyDecision = null;
     state.turnState = TurnState.WaitingForRoll;
     return state;
   }

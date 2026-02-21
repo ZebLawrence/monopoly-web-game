@@ -120,6 +120,7 @@ export function GameLayout({
       <div
         ref={boardContainerRef}
         className={styles.boardSection}
+        style={{ touchAction: scale > 1 ? 'none' : 'pan-x pan-y' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

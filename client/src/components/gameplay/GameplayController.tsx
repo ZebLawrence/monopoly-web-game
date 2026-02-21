@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import type { GameState, Space, GameAction } from '@monopoly/shared';
-import { TurnState } from '@monopoly/shared';
+import { TurnState, GameEventType } from '@monopoly/shared';
 import { DiceDisplay } from './DiceDisplay';
 import { BuyPropertyModal } from './BuyPropertyModal';
 import { SpaceNotification } from './SpaceNotification';
@@ -21,6 +21,10 @@ export interface GameplayControllerProps {
   emitAction: (action: GameAction) => Promise<{ ok: boolean; error?: string }>;
   soundMuted?: boolean;
   onToggleSound?: () => void;
+  showAssetManagement?: boolean;
+  onOpenBuild?: () => void;
+  onOpenMortgage?: () => void;
+  onOpenTrade?: () => void;
 }
 
 export function GameplayController({
@@ -29,6 +33,10 @@ export function GameplayController({
   emitAction,
   soundMuted,
   onToggleSound,
+  showAssetManagement,
+  onOpenBuild,
+  onOpenMortgage,
+  onOpenTrade,
 }: GameplayControllerProps) {
   const [cardDismissed, setCardDismissed] = useState(false);
   const [buyDismissed, setBuyDismissed] = useState(false);
@@ -99,6 +107,12 @@ export function GameplayController({
       );
     });
   }, [gameState.events, feedFilter, localPlayerId]);
+
+  // Unique key per dice roll — forces DiceDisplay to remount every roll so animation always plays
+  const diceRollKey = useMemo(
+    () => gameState.events.filter((e) => e.type === GameEventType.DiceRolled).length,
+    [gameState.events],
+  );
 
   // Action handlers
   const handleRollDice = useCallback(() => {
@@ -183,6 +197,7 @@ export function GameplayController({
         {/* Dice display */}
         {showDice && (
           <DiceDisplay
+            key={diceRollKey}
             die1={gameState.lastDiceResult!.die1}
             die2={gameState.lastDiceResult!.die2}
             isDoubles={gameState.lastDiceResult!.isDoubles}
@@ -268,6 +283,7 @@ export function GameplayController({
       {/* Dice display */}
       {showDice && (
         <DiceDisplay
+          key={diceRollKey}
           die1={gameState.lastDiceResult!.die1}
           die2={gameState.lastDiceResult!.die2}
           isDoubles={gameState.lastDiceResult!.isDoubles}
@@ -295,6 +311,39 @@ export function GameplayController({
               aria-label="End turn"
             >
               End Turn
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Asset management buttons (Build / Mortgage / Trade) inline near the dice */}
+      {showAssetManagement && (
+        <div className={styles.assetRow} data-testid="asset-actions">
+          {onOpenBuild && (
+            <button
+              className={styles.assetButton}
+              onClick={onOpenBuild}
+              data-testid="open-building-manager"
+            >
+              Build
+            </button>
+          )}
+          {onOpenMortgage && (
+            <button
+              className={styles.assetButton}
+              onClick={onOpenMortgage}
+              data-testid="open-mortgage-manager"
+            >
+              Mortgage
+            </button>
+          )}
+          {onOpenTrade && (
+            <button
+              className={styles.assetButton}
+              onClick={onOpenTrade}
+              data-testid="open-trade-builder"
+            >
+              Trade
             </button>
           )}
         </div>

@@ -60,7 +60,16 @@ export interface PropertyStateEntry {
 const _propertyStates = new Map<string, Map<number, PropertyStateEntry>>();
 
 export function getPropertyState(state: GameState, spaceId: number): PropertyStateEntry | null {
-  const gameMap = _propertyStates.get(state.gameId);
+  let gameMap = _propertyStates.get(state.gameId);
+  // Rehydrate in-memory map from state (e.g. after Redis deserialization)
+  if (!gameMap && state.propertyStates) {
+    gameMap = new Map();
+    for (const [key, val] of Object.entries(state.propertyStates)) {
+      const id = Number(key);
+      gameMap.set(id, { spaceId: id, houses: val.houses, mortgaged: val.mortgaged });
+    }
+    _propertyStates.set(state.gameId, gameMap);
+  }
   if (!gameMap) return null;
   return gameMap.get(spaceId) ?? null;
 }
@@ -72,6 +81,9 @@ export function setPropertyState(state: GameState, entry: PropertyStateEntry): v
     _propertyStates.set(state.gameId, gameMap);
   }
   gameMap.set(entry.spaceId, entry);
+  // Keep state.propertyStates in sync so it serializes over the socket / Redis
+  if (!state.propertyStates) state.propertyStates = {};
+  state.propertyStates[entry.spaceId] = { houses: entry.houses, mortgaged: entry.mortgaged };
 }
 
 export function resetPropertyStates(gameId: string): void {

@@ -112,6 +112,16 @@ export function ChatPanel({
     <div className={styles.container} data-testid="chat-panel">
       <div className={styles.header}>
         <span>Chat</span>
+        {mobileOpen && (
+          <button
+            className={styles.drawerCloseButton}
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close chat"
+            data-testid="chat-drawer-close"
+          >
+            &#x2715;
+          </button>
+        )}
       </div>
 
       <div
@@ -176,20 +186,20 @@ export function ChatPanel({
       {/* Desktop view */}
       {chatContent}
 
-      {/* Mobile toggle */}
-      <div className={styles.mobileToggle}>
-        <button
-          className={styles.toggleButton}
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? 'Close chat' : 'Open chat'}
-          data-testid="chat-mobile-toggle"
-        >
-          &#x1F4AC;
-          {!mobileOpen && unreadCount > 0 && (
-            <span className={styles.unreadBadge}>{unreadCount}</span>
-          )}
-        </button>
-      </div>
+      {/* Mobile toggle — hidden when drawer is open (drawer has its own close button) */}
+      {!mobileOpen && (
+        <div className={styles.mobileToggle}>
+          <button
+            className={styles.toggleButton}
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open chat"
+            data-testid="chat-mobile-toggle"
+          >
+            &#x1F4AC;
+            {unreadCount > 0 && <span className={styles.unreadBadge}>{unreadCount}</span>}
+          </button>
+        </div>
+      )}
 
       {/* Mobile drawer */}
       {mobileOpen && (

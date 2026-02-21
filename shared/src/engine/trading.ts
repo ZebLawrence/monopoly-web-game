@@ -63,6 +63,11 @@ export function createTradeOffer(
     status: 'pending',
   };
 
+  // Store in map for accept/reject lookups and in state for socket delivery
+  storeTrade(trade);
+  if (!newState.pendingTrades) newState.pendingTrades = [];
+  newState.pendingTrades.push(trade);
+
   return { state: newState, trade };
 }
 
@@ -130,6 +135,9 @@ export function acceptTrade(state: GameState, tradeId: string): GameState {
   trade.status = 'accepted';
   _trades.set(tradeId, trade);
 
+  // Remove from pendingTrades in state
+  newState.pendingTrades = (newState.pendingTrades ?? []).filter((t) => t.id !== tradeId);
+
   return newState;
 }
 
@@ -140,8 +148,9 @@ export function rejectTrade(state: GameState, tradeId: string): GameState {
   trade.status = 'rejected';
   _trades.set(tradeId, trade);
 
-  // No state change
-  return deepClone(state);
+  const newState = deepClone(state);
+  newState.pendingTrades = (newState.pendingTrades ?? []).filter((t) => t.id !== tradeId);
+  return newState;
 }
 
 export function counterTrade(
@@ -152,12 +161,21 @@ export function counterTrade(
   const originalTrade = getTrade(tradeId);
   if (!originalTrade) throw new Error(`Trade ${tradeId} not found`);
 
-  // Mark original as countered
+  // Mark original as countered and remove from state
   originalTrade.status = 'countered';
   _trades.set(tradeId, originalTrade);
+  const stateWithoutOld = deepClone(state);
+  stateWithoutOld.pendingTrades = (stateWithoutOld.pendingTrades ?? []).filter(
+    (t) => t.id !== tradeId,
+  );
 
   // Create new trade with swapped roles
-  return createTradeOffer(state, originalTrade.recipientId, originalTrade.proposerId, newOffer);
+  return createTradeOffer(
+    stateWithoutOld,
+    originalTrade.recipientId,
+    originalTrade.proposerId,
+    newOffer,
+  );
 }
 
 export function resetTrades(): void {

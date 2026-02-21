@@ -4,6 +4,7 @@ import { Card } from './card';
 import { TurnState } from './turn';
 import { GameSettings } from './gameSettings';
 import { GameEvent } from './gameEvent';
+import { TradeOffer } from './trade';
 
 export type GameStatus = 'waiting' | 'playing' | 'finished';
 
@@ -50,4 +51,6 @@ export interface GameState {
   lastResolution?: LastResolution | null;
   doublesCount?: number;
   lastPassedGo?: boolean;
+  pendingTrades?: TradeOffer[];
+  propertyStates?: Record<number, { houses: number; mortgaged: boolean }>;
 }

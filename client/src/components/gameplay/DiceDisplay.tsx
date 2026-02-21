@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './DiceDisplay.module.css';
 
 export interface DiceDisplayProps {
@@ -71,17 +71,9 @@ function DieFace({ value, rolling }: { value: number; rolling: boolean }) {
 export function DiceDisplay({ die1, die2, isDoubles, onAnimationComplete }: DiceDisplayProps) {
   const [rolling, setRolling] = useState(false);
   const [displayValues, setDisplayValues] = useState<[number, number]>([1, 1]);
-  const prevDie1 = useRef<number | null>(null);
-  const prevDie2 = useRef<number | null>(null);
 
   useEffect(() => {
     if (die1 === null || die2 === null) return;
-    if (die1 === prevDie1.current && die2 === prevDie2.current) return;
-
-    prevDie1.current = die1;
-    prevDie2.current = die2;
-
-    // Start rolling animation
     setRolling(true);
     const interval = setInterval(() => {
       setDisplayValues([Math.ceil(Math.random() * 6), Math.ceil(Math.random() * 6)]);

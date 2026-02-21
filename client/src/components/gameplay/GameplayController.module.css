@@ -157,6 +157,31 @@
   outline-offset: 1px;
 }
 
+.assetRow {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.assetButton {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  min-height: 44px;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.assetButton:hover {
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
 /* Mobile responsive adjustments */
 @media (max-width: 767px) {
   .container {

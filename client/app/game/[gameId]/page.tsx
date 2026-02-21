@@ -3,7 +3,7 @@
 import { use, useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TurnState, GameEventType, SpaceType } from '@monopoly/shared';
-import type { Property, TradeOfferPayload } from '@monopoly/shared';
+import type { Property, TradeOfferPayload, TradeOffer } from '@monopoly/shared';
 import { GameStateProvider, useGameState } from '../../../src/hooks/useGameState';
 import { LoadingSkeleton } from '../../../src/components/ui/LoadingSkeleton';
 import { ConnectionError } from '../../../src/components/connection/ConnectionError';
@@ -13,22 +13,26 @@ import { BuildingManager } from '../../../src/components/building/BuildingManage
 import type { BuildingSupply } from '../../../src/components/building/BuildingManager';
 import { MortgageManager } from '../../../src/components/mortgage/MortgageManager';
 import { TradeBuilder } from '../../../src/components/trading/TradeBuilder';
+import { IncomingTradeModal } from '../../../src/components/trading/IncomingTradeModal';
 import { AuctionPanel } from '../../../src/components/auction/AuctionPanel';
 import type { AuctionInfo } from '../../../src/components/auction/AuctionPanel';
 import { ChatPanel } from '../../../src/components/chat/ChatPanel';
 import { VictoryScreen } from '../../../src/components/endgame/VictoryScreen';
 import { ReconnectionOverlay } from '../../../src/components/connection/ReconnectionOverlay';
+import { ToastProvider } from '../../../src/components/ui/Toast';
 import styles from './GamePage.module.css';
 
 export default function GamePage({ params }: { params: Promise<{ gameId: string }> }) {
   const { gameId } = use(params);
 
   return (
-    <GameStateProvider>
-      <Suspense fallback={<LoadingSkeleton />}>
-        <GameContent gameId={gameId} />
-      </Suspense>
-    </GameStateProvider>
+    <ToastProvider>
+      <GameStateProvider>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <GameContent gameId={gameId} />
+        </Suspense>
+      </GameStateProvider>
+    </ToastProvider>
   );
 }
 
@@ -71,6 +75,7 @@ function GameContent({ gameId }: { gameId: string }) {
   const [showBuildingManager, setShowBuildingManager] = useState(false);
   const [showMortgageManager, setShowMortgageManager] = useState(false);
   const [showTradeBuilder, setShowTradeBuilder] = useState(false);
+  const [counterTradeId, setCounterTradeId] = useState<string | null>(null);
 
   // Effective room code — from context state or URL param
   const effectiveRoomCode = roomCode || roomParam;
@@ -83,6 +88,17 @@ function GameContent({ gameId }: { gameId: string }) {
   const isAuction = gameState?.turnState === TurnState.Auction;
   const showAssetManagement = isMyTurn && isPlayerAction && !localPlayer?.isBankrupt;
 
+  // Pending trade directed at the local player
+  const incomingTrade: TradeOffer | null = useMemo(() => {
+    const pid = playerId || pidParam;
+    if (!gameState || !pid) return null;
+    return (
+      (gameState.pendingTrades ?? []).find(
+        (t) => t.recipientId === pid && t.status === 'pending',
+      ) ?? null
+    );
+  }, [gameState, playerId, pidParam]);
+
   // Derive Property[] from board + player ownership
   const properties = useMemo((): Property[] => {
     if (!gameState) return [];
@@ -94,6 +110,7 @@ function GameContent({ gameId }: { gameId: string }) {
         let type: 'street' | 'railroad' | 'utility' = 'street';
         if (space.type === SpaceType.Railroad) type = 'railroad';
         else if (space.type === SpaceType.Utility) type = 'utility';
+        const propState = gameState.propertyStates?.[space.id];
         props.push({
           spaceId: space.id,
           name: space.name,
@@ -101,9 +118,9 @@ function GameContent({ gameId }: { gameId: string }) {
           colorGroup: space.colorGroup,
           cost: space.cost ?? 0,
           rentTiers: space.rentTiers ?? [],
-          mortgaged: false,
+          mortgaged: propState?.mortgaged ?? false,
           ownerId: player.id,
-          houses: 0,
+          houses: propState?.houses ?? 0,
         });
       }
     }
@@ -190,11 +207,35 @@ function GameContent({ gameId }: { gameId: string }) {
 
   const handleSendTradeOffer = useCallback(
     (recipientId: string, offer: TradeOfferPayload) => {
-      emitAction({ type: 'ProposeTrade', recipientId, offer });
+      if (counterTradeId) {
+        emitAction({ type: 'CounterTrade', tradeId: counterTradeId, offer });
+        setCounterTradeId(null);
+      } else {
+        emitAction({ type: 'ProposeTrade', recipientId, offer });
+      }
       setShowTradeBuilder(false);
+    },
+    [emitAction, counterTradeId],
+  );
+
+  const handleAcceptTrade = useCallback(
+    (tradeId: string) => {
+      emitAction({ type: 'AcceptTrade', tradeId });
     },
     [emitAction],
   );
+
+  const handleRejectTrade = useCallback(
+    (tradeId: string) => {
+      emitAction({ type: 'RejectTrade', tradeId });
+    },
+    [emitAction],
+  );
+
+  const handleCounterTrade = useCallback((tradeId: string) => {
+    setCounterTradeId(tradeId);
+    setShowTradeBuilder(true);
+  }, []);
 
   const handleAuctionBid = useCallback(
     (amount: number) => {
@@ -269,6 +310,10 @@ function GameContent({ gameId }: { gameId: string }) {
         gameState={gameState}
         localPlayerId={effectivePlayerId}
         emitAction={emitAction}
+        showAssetManagement={!!showAssetManagement}
+        onOpenBuild={() => setShowBuildingManager(true)}
+        onOpenMortgage={() => setShowMortgageManager(true)}
+        onOpenTrade={() => setShowTradeBuilder(true)}
       />
 
       {/* P1.S3.T4: Building & Mortgage managers (only during PlayerAction phase, local player's turn) */}
@@ -296,32 +341,7 @@ function GameContent({ gameId }: { gameId: string }) {
         </>
       )}
 
-      {/* P1.S3.T4: Asset management buttons (visible during PlayerAction phase) */}
-      {showAssetManagement && (
-        <div className={styles.assetActions} data-testid="asset-actions">
-          <button
-            className={styles.assetButton}
-            onClick={() => setShowBuildingManager(true)}
-            data-testid="open-building-manager"
-          >
-            Build
-          </button>
-          <button
-            className={styles.assetButton}
-            onClick={() => setShowMortgageManager(true)}
-            data-testid="open-mortgage-manager"
-          >
-            Mortgage
-          </button>
-          <button
-            className={styles.assetButton}
-            onClick={() => setShowTradeBuilder(true)}
-            data-testid="open-trade-builder"
-          >
-            Trade
-          </button>
-        </div>
-      )}
+      {/* P1.S3.T4: Asset management buttons rendered inline in GameplayController above */}
 
       {/* P1.S3.T5: Trade Builder */}
       {localPlayer && (
@@ -333,9 +353,32 @@ function GameContent({ gameId }: { gameId: string }) {
           )}
           properties={properties}
           onSendOffer={handleSendTradeOffer}
-          onClose={() => setShowTradeBuilder(false)}
+          onClose={() => {
+            setShowTradeBuilder(false);
+            setCounterTradeId(null);
+          }}
         />
       )}
+
+      {/* Incoming trade offer from another player */}
+      {incomingTrade &&
+        localPlayer &&
+        (() => {
+          const proposer = gameState.players.find((p) => p.id === incomingTrade.proposerId);
+          if (!proposer) return null;
+          return (
+            <IncomingTradeModal
+              isOpen
+              trade={incomingTrade}
+              proposer={proposer}
+              properties={properties}
+              onAccept={() => handleAcceptTrade(incomingTrade.id)}
+              onReject={() => handleRejectTrade(incomingTrade.id)}
+              onCounter={() => handleCounterTrade(incomingTrade.id)}
+              onClose={() => handleRejectTrade(incomingTrade.id)}
+            />
+          );
+        })()}
 
       {/* P1.S3.T6: Auction Panel */}
       {isAuction && auctionData && effectivePlayerId && (
