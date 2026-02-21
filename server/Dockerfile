@@ -13,8 +13,8 @@ RUN pnpm install --frozen-lockfile --prod=false
 FROM deps AS build
 COPY shared/ shared/
 COPY server/ server/
-RUN pnpm --filter shared build 2>/dev/null || true
-RUN pnpm --filter server build 2>/dev/null || true
+RUN pnpm --filter shared build
+RUN pnpm --filter server build
 
 # Production image
 FROM node:20-alpine AS production
