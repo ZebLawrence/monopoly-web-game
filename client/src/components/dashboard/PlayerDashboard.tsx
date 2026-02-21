@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import type { Player, Property, ColorGroup } from '@monopoly/shared';
-import { TokenType } from '@monopoly/shared';
+import { TokenType, TurnState } from '@monopoly/shared';
 import { CashDisplay } from '../ui/CashDisplay';
 import { Modal } from '../ui/Modal';
 import { PropertyCard, RailroadCard, UtilityCard } from '../ui/PropertyCard';
@@ -34,6 +34,8 @@ export interface PlayerDashboardProps {
   currentPlayer: Player;
   allPlayers: Player[];
   properties: Property[];
+  turnState?: TurnState;
+  isCurrentPlayersTurn?: boolean;
 }
 
 export function PlayerDashboard({ currentPlayer, allPlayers, properties }: PlayerDashboardProps) {
@@ -173,6 +175,51 @@ export function OtherPlayersSummary({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+export interface ActionButtonBarProps {
+  turnState: TurnState;
+  isCurrentPlayersTurn: boolean;
+  onAction?: (action: string) => void;
+}
+
+export function ActionButtonBar({
+  turnState,
+  isCurrentPlayersTurn,
+  onAction,
+}: ActionButtonBarProps) {
+  const isWaitingForRoll = turnState === TurnState.WaitingForRoll;
+  const isPlayerAction = turnState === TurnState.PlayerAction;
+
+  const rollEnabled = isCurrentPlayersTurn && isWaitingForRoll;
+  const buyEnabled = false; // only enabled via property landing flow
+  const buildEnabled = isCurrentPlayersTurn && isPlayerAction;
+  const mortgageEnabled = isCurrentPlayersTurn && isPlayerAction;
+  const tradeEnabled = isCurrentPlayersTurn && isPlayerAction;
+  const endTurnEnabled = isCurrentPlayersTurn && isPlayerAction;
+
+  return (
+    <div className={styles.actionButtonBar} data-testid="action-button-bar">
+      <button disabled={!rollEnabled} onClick={() => onAction?.('rollDice')}>
+        Roll Dice
+      </button>
+      <button disabled={!buyEnabled} onClick={() => onAction?.('buy')}>
+        Buy
+      </button>
+      <button disabled={!buildEnabled} onClick={() => onAction?.('build')}>
+        Build
+      </button>
+      <button disabled={!mortgageEnabled} onClick={() => onAction?.('mortgage')}>
+        Mortgage
+      </button>
+      <button disabled={!tradeEnabled} onClick={() => onAction?.('trade')}>
+        Trade
+      </button>
+      <button disabled={!endTurnEnabled} onClick={() => onAction?.('endTurn')}>
+        End Turn
+      </button>
     </div>
   );
 }
