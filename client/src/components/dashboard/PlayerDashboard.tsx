@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import type { Player, Property, ColorGroup } from '@monopoly/shared';
-import { TokenType, TurnState } from '@monopoly/shared';
-import { Button } from '../ui/Button';
+import { TokenType } from '@monopoly/shared';
 import { CashDisplay } from '../ui/CashDisplay';
 import { Modal } from '../ui/Modal';
 import { PropertyCard, RailroadCard, UtilityCard } from '../ui/PropertyCard';
@@ -35,19 +34,9 @@ export interface PlayerDashboardProps {
   currentPlayer: Player;
   allPlayers: Player[];
   properties: Property[];
-  turnState: TurnState;
-  isCurrentPlayersTurn: boolean;
-  onAction?: (action: string) => void;
 }
 
-export function PlayerDashboard({
-  currentPlayer,
-  allPlayers,
-  properties,
-  turnState,
-  isCurrentPlayersTurn,
-  onAction,
-}: PlayerDashboardProps) {
+export function PlayerDashboard({ currentPlayer, allPlayers, properties }: PlayerDashboardProps) {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const ownedProperties = properties.filter((p) => p.ownerId === currentPlayer.id);
@@ -65,11 +54,6 @@ export function PlayerDashboard({
       <OwnedPropertiesList properties={ownedProperties} onPropertyClick={setSelectedProperty} />
       <HeldCardsDisplay count={currentPlayer.getOutOfJailFreeCards} />
       <OtherPlayersSummary players={otherPlayers} properties={properties} />
-      <ActionButtonBar
-        turnState={turnState}
-        isCurrentPlayersTurn={isCurrentPlayersTurn}
-        onAction={onAction}
-      />
 
       {selectedProperty && (
         <PropertyDetailModal
@@ -187,52 +171,6 @@ export function OtherPlayersSummary({
               </span>
             </div>
           </div>
-        );
-      })}
-    </div>
-  );
-}
-
-interface ActionButtonBarProps {
-  turnState: TurnState;
-  isCurrentPlayersTurn: boolean;
-  onAction?: (action: string) => void;
-}
-
-export function ActionButtonBar({
-  turnState,
-  isCurrentPlayersTurn,
-  onAction,
-}: ActionButtonBarProps) {
-  const actions = [
-    { id: 'rollDice', label: 'Roll Dice', enabledStates: [TurnState.WaitingForRoll] },
-    { id: 'buy', label: 'Buy', enabledStates: [TurnState.AwaitingBuyDecision] },
-    { id: 'build', label: 'Build', enabledStates: [TurnState.PlayerAction] },
-    { id: 'mortgage', label: 'Mortgage', enabledStates: [TurnState.PlayerAction] },
-    { id: 'trade', label: 'Trade', enabledStates: [TurnState.PlayerAction] },
-    {
-      id: 'endTurn',
-      label: 'End Turn',
-      enabledStates: [TurnState.PlayerAction, TurnState.EndTurn],
-    },
-  ];
-
-  return (
-    <div className={styles.actionBar} data-testid="action-bar">
-      {actions.map((action) => {
-        const isEnabled = isCurrentPlayersTurn && action.enabledStates.includes(turnState);
-        return (
-          <Button
-            key={action.id}
-            variant={action.id === 'rollDice' ? 'primary' : 'ghost'}
-            size="sm"
-            className={styles.actionButton}
-            disabled={!isEnabled}
-            onClick={() => onAction?.(action.id)}
-            data-testid={`action-${action.id}`}
-          >
-            {action.label}
-          </Button>
         );
       })}
     </div>

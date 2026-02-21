@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import type { Player, Property, Space } from '@monopoly/shared';
-import { TurnState } from '@monopoly/shared';
 import { PixiBoard } from '../board/PixiBoard';
 import { PlayerDashboard } from './PlayerDashboard';
 import styles from './GameLayout.module.css';
@@ -12,26 +11,17 @@ export interface GameLayoutProps {
   players: Player[];
   properties: Property[];
   currentPlayer: Player;
-  turnState: TurnState;
-  isCurrentPlayersTurn: boolean;
   onSpaceClick?: (spaceId: number) => void;
-  onAction?: (action: string) => void;
 }
-
-type MobileTab = 'properties' | 'players' | 'actions';
 
 export function GameLayout({
   spaces,
   players,
   properties,
   currentPlayer,
-  turnState,
-  isCurrentPlayersTurn,
   onSpaceClick,
-  onAction,
 }: GameLayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<MobileTab>('actions');
   const drawerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
 
@@ -142,9 +132,6 @@ export function GameLayout({
           currentPlayer={currentPlayer}
           allPlayers={players}
           properties={properties}
-          turnState={turnState}
-          isCurrentPlayersTurn={isCurrentPlayersTurn}
-          onAction={onAction}
         />
       </div>
 
@@ -161,28 +148,11 @@ export function GameLayout({
             <div className={styles.drawerBar} />
           </div>
 
-          <div className={styles.mobileTabs}>
-            {(['properties', 'players', 'actions'] as const).map((tab) => (
-              <button
-                key={tab}
-                className={`${styles.mobileTab} ${activeTab === tab ? styles.mobileTabActive : ''}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab === 'properties' ? 'My Properties' : tab === 'players' ? 'Players' : 'Actions'}
-              </button>
-            ))}
-          </div>
-
-          <div className={styles.mobileTabContent}>
-            <PlayerDashboard
-              currentPlayer={currentPlayer}
-              allPlayers={players}
-              properties={properties}
-              turnState={turnState}
-              isCurrentPlayersTurn={isCurrentPlayersTurn}
-              onAction={onAction}
-            />
-          </div>
+          <PlayerDashboard
+            currentPlayer={currentPlayer}
+            allPlayers={players}
+            properties={properties}
+          />
         </div>
       )}
 

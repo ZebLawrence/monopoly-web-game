@@ -301,8 +301,6 @@ function GameContent({ gameId }: { gameId: string }) {
         players={gameState.players}
         properties={properties}
         currentPlayer={localPlayer ?? currentPlayer!}
-        turnState={gameState.turnState}
-        isCurrentPlayersTurn={isMyTurn}
       />
 
       {/* P1.S3.T3: Gameplay controller (dice, buy/decline, jail, cards, activity feed) */}
