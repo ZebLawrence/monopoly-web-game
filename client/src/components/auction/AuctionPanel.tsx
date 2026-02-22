@@ -66,7 +66,7 @@ export function AuctionPanel({
   }, [bidAmount, canAffordBid, isEligible, onBid]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose ?? (() => {})} title="Property Auction">
+    <Modal isOpen={isOpen} onClose={onClose ?? (() => {})} title="Property Auction" hideHeader>
       <div className={styles.container} data-testid="auction-panel">
         <div className={styles.propertySection}>
           {space.type === SpaceType.Property && space.colorGroup && (

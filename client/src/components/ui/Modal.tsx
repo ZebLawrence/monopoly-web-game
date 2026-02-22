@@ -8,9 +8,10 @@ export interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  hideHeader?: boolean;
 }
 
-export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, hideHeader }: ModalProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -36,12 +37,14 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       aria-label={title}
     >
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>{title}</h2>
-          <button className={styles.closeButton} onClick={onClose} aria-label="Close">
-            &times;
-          </button>
-        </div>
+        {!hideHeader && (
+          <div className={styles.header}>
+            <h2 className={styles.title}>{title}</h2>
+            <button className={styles.closeButton} onClick={onClose} aria-label="Close">
+              &times;
+            </button>
+          </div>
+        )}
         <div className={styles.body}>{children}</div>
       </div>
     </div>
