@@ -8,6 +8,7 @@ export interface TurnStateLabelProps {
   turnState: TurnState;
   isCurrentPlayersTurn: boolean;
   isInJail: boolean;
+  waitingForName?: string;
 }
 
 const STATE_LABELS: Record<TurnState, string> = {
@@ -21,18 +22,27 @@ const STATE_LABELS: Record<TurnState, string> = {
   [TurnState.EndTurn]: 'Turn Ending...',
 };
 
-export function TurnStateLabel({ turnState, isCurrentPlayersTurn, isInJail }: TurnStateLabelProps) {
+export function TurnStateLabel({
+  turnState,
+  isCurrentPlayersTurn,
+  isInJail,
+  waitingForName,
+}: TurnStateLabelProps) {
   let label = STATE_LABELS[turnState] ?? turnState;
+  const isWaiting = !isCurrentPlayersTurn;
 
-  if (!isCurrentPlayersTurn) {
-    label = 'Waiting...';
+  if (isWaiting) {
+    label = waitingForName ? `Waiting for ${waitingForName}…` : 'Waiting…';
   } else if (isInJail && turnState === TurnState.WaitingForRoll) {
     label = 'Jail Options';
   }
 
   return (
-    <div className={styles.container} data-testid="turn-state-label">
-      <span className={styles.dot} />
+    <div
+      className={`${styles.container} ${isWaiting ? styles.waiting : ''}`}
+      data-testid="turn-state-label"
+    >
+      <span className={`${styles.dot} ${isWaiting ? styles.dotWaiting : ''}`} />
       <span className={styles.label}>{label}</span>
     </div>
   );

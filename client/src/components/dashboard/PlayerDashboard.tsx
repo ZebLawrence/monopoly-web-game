@@ -36,9 +36,15 @@ export interface PlayerDashboardProps {
   properties: Property[];
   turnState?: TurnState;
   isCurrentPlayersTurn?: boolean;
+  activityFeed?: React.ReactNode;
 }
 
-export function PlayerDashboard({ currentPlayer, allPlayers, properties }: PlayerDashboardProps) {
+export function PlayerDashboard({
+  currentPlayer,
+  allPlayers,
+  properties,
+  activityFeed,
+}: PlayerDashboardProps) {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const ownedProperties = properties.filter((p) => p.ownerId === currentPlayer.id);
@@ -56,6 +62,7 @@ export function PlayerDashboard({ currentPlayer, allPlayers, properties }: Playe
       <OwnedPropertiesList properties={ownedProperties} onPropertyClick={setSelectedProperty} />
       <HeldCardsDisplay count={currentPlayer.getOutOfJailFreeCards} />
       <OtherPlayersSummary players={otherPlayers} properties={properties} />
+      {activityFeed}
 
       {selectedProperty && (
         <PropertyDetailModal

@@ -142,9 +142,16 @@ export interface WaitingRoomProps {
   players: LobbyPlayer[];
   isHost: boolean;
   onStartGame?: () => void;
+  tokenSelector?: React.ReactNode;
 }
 
-export function WaitingRoom({ roomCode, players, isHost, onStartGame }: WaitingRoomProps) {
+export function WaitingRoom({
+  roomCode,
+  players,
+  isHost,
+  onStartGame,
+  tokenSelector,
+}: WaitingRoomProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = useCallback(async () => {
@@ -185,6 +192,8 @@ export function WaitingRoom({ roomCode, players, isHost, onStartGame }: WaitingR
             <PlayerListItem key={player.id} player={player} />
           ))}
         </div>
+
+        {tokenSelector && <div className={styles.tokenSelectorSection}>{tokenSelector}</div>}
 
         <div className={styles.startSection}>
           {isHost && (

@@ -10,6 +10,7 @@ import { LoadingSkeleton } from '../../../src/components/ui/LoadingSkeleton';
 import { ConnectionError } from '../../../src/components/connection/ConnectionError';
 import { GameLayout } from '../../../src/components/dashboard/GameLayout';
 import { GameplayController } from '../../../src/components/gameplay/GameplayController';
+import { ActivityFeedSection } from '../../../src/components/gameplay/ActivityFeed';
 import { BuildingManager } from '../../../src/components/building/BuildingManager';
 import type { BuildingSupply } from '../../../src/components/building/BuildingManager';
 import { MortgageManager } from '../../../src/components/mortgage/MortgageManager';
@@ -58,6 +59,13 @@ function GameContent({ gameId }: { gameId: string }) {
     socket,
     dispatch,
   } = useGameState();
+
+  // Suppress server/client hydration mismatch — connection state is
+  // client-only; always render LoadingSkeleton until after first mount.
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // --- Auto-reconnect when arriving from lobby ---
   const [reconnectAttempted, setReconnectAttempted] = useState(false);
@@ -283,6 +291,12 @@ function GameContent({ gameId }: { gameId: string }) {
   }, [socket, effectiveRoomCode, playerId, pidParam]);
 
   // --- Loading / error states ---
+  // Before mount, always render LoadingSkeleton to match the server render
+  // and avoid a hydration mismatch (connection state is client-only).
+  if (!isMounted) {
+    return <LoadingSkeleton />;
+  }
+
   if (!gameState && connected) {
     return <LoadingSkeleton />;
   }
@@ -306,6 +320,13 @@ function GameContent({ gameId }: { gameId: string }) {
         players={gameState.players}
         properties={properties}
         currentPlayer={localPlayer ?? currentPlayer!}
+        activityFeed={
+          <ActivityFeedSection
+            events={gameState.events}
+            players={gameState.players}
+            localPlayerId={effectivePlayerId}
+          />
+        }
       />
 
       {/* P1.S3.T3: Gameplay controller (dice, buy/decline, jail, cards, activity feed) */}

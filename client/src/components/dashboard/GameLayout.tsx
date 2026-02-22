@@ -26,6 +26,7 @@ export interface GameLayoutProps {
   properties: Property[];
   currentPlayer: Player;
   onSpaceClick?: (spaceId: number) => void;
+  activityFeed?: React.ReactNode;
 }
 
 export function GameLayout({
@@ -34,6 +35,7 @@ export function GameLayout({
   properties,
   currentPlayer,
   onSpaceClick,
+  activityFeed,
 }: GameLayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -239,6 +241,7 @@ export function GameLayout({
           currentPlayer={currentPlayer}
           allPlayers={players}
           properties={properties}
+          activityFeed={activityFeed}
         />
       </div>
 
@@ -259,6 +262,7 @@ export function GameLayout({
             currentPlayer={currentPlayer}
             allPlayers={players}
             properties={properties}
+            activityFeed={activityFeed}
           />
         </div>
       )}

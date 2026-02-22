@@ -154,6 +154,16 @@
   text-align: center;
 }
 
+.tokenSelectorSection {
+  margin-bottom: var(--space-6);
+}
+
+.tokenSelectorSection h3 {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  margin-bottom: var(--space-2);
+}
+
 .waitingText {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);

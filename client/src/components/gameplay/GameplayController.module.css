@@ -3,6 +3,8 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-3);
+  flex: 1;
+  min-height: 0;
 }
 
 .stateRow {
@@ -10,6 +12,42 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+}
+
+.waitingActivity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  animation: fadeIn 0.3s ease;
+}
+
+.waitingActivityIcon {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.waitingActivityMessage {
+  flex: 1;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.waitingActivityTime {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .activePlayerBadge {
@@ -98,12 +136,13 @@
   letter-spacing: 1px;
 }
 
-/* Feed Controls */
+/* Feed Controls — pushed to the bottom of the drawer */
 .feedControls {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  margin-top: auto;
 }
 
 .feedFilterRow {

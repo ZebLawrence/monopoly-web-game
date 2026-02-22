@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import type { GameEvent, Player } from '@monopoly/shared';
 import { GameEventType } from '@monopoly/shared';
 import styles from './ActivityFeed.module.css';
@@ -14,7 +14,7 @@ function getPlayerName(players: Player[], playerId: string): string {
   return players.find((p) => p.id === playerId)?.name ?? 'Unknown';
 }
 
-const EVENT_ICONS: Partial<Record<GameEventType, string>> = {
+export const EVENT_ICONS: Partial<Record<GameEventType, string>> = {
   [GameEventType.DiceRolled]: '\u{1F3B2}',
   [GameEventType.PlayerMoved]: '\u{1F9F3}',
   [GameEventType.PropertyPurchased]: '\u{1F3E0}',
@@ -80,7 +80,7 @@ export function formatEventMessage(event: GameEvent, players: Player[]): string 
   }
 }
 
-function formatTime(timestamp: number): string {
+export function formatTime(timestamp: number): string {
   const date = new Date(timestamp);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
@@ -146,6 +146,72 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
         aria-label={latestMessage}
         className="sr-only"
       />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ActivityFeedSection — filter controls + feed, self-contained with own state
+// ---------------------------------------------------------------------------
+
+export interface ActivityFeedSectionProps {
+  events: GameEvent[];
+  players: Player[];
+  localPlayerId?: string | null;
+  soundMuted?: boolean;
+  onToggleSound?: () => void;
+}
+
+export function ActivityFeedSection({
+  events,
+  players,
+  localPlayerId,
+  soundMuted,
+  onToggleSound,
+}: ActivityFeedSectionProps) {
+  const [feedFilter, setFeedFilter] = useState<'all' | 'mine'>('all');
+
+  const filteredEvents = useMemo(() => {
+    if (feedFilter === 'all') return events;
+    return events.filter((e) => {
+      const pid = (e.payload.playerId as string) ?? '';
+      const payerId = (e.payload.payerId as string) ?? '';
+      const receiverId = (e.payload.receiverId as string) ?? '';
+      return pid === localPlayerId || payerId === localPlayerId || receiverId === localPlayerId;
+    });
+  }, [events, feedFilter, localPlayerId]);
+
+  return (
+    <div className={styles.feedSection}>
+      <div className={styles.feedControls}>
+        <div className={styles.feedFilterRow}>
+          <button
+            className={`${styles.filterButton} ${feedFilter === 'all' ? styles.filterActive : ''}`}
+            onClick={() => setFeedFilter('all')}
+            data-testid="filter-all"
+          >
+            All Events
+          </button>
+          <button
+            className={`${styles.filterButton} ${feedFilter === 'mine' ? styles.filterActive : ''}`}
+            onClick={() => setFeedFilter('mine')}
+            data-testid="filter-mine"
+          >
+            My Events
+          </button>
+        </div>
+        {onToggleSound && (
+          <button
+            className={styles.soundToggle}
+            onClick={onToggleSound}
+            aria-label={soundMuted ? 'Unmute sounds' : 'Mute sounds'}
+            data-testid="sound-toggle"
+          >
+            {soundMuted ? '\u{1F507}' : '\u{1F50A}'}
+          </button>
+        )}
+      </div>
+      <ActivityFeed events={filteredEvents} players={players} />
     </div>
   );
 }

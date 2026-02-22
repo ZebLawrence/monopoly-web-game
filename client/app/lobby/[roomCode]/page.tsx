@@ -182,15 +182,17 @@ function LobbyContent({ roomCode }: { roomCode: string }) {
         players={players}
         isHost={isHost}
         onStartGame={handleStartGame}
+        tokenSelector={
+          <>
+            <h3>Select Your Token</h3>
+            <TokenSelector
+              selectedToken={currentPlayer?.token}
+              disabledTokens={disabledTokens}
+              onSelect={handleTokenSelect}
+            />
+          </>
+        }
       />
-      <div style={{ padding: 'var(--space-4)', maxWidth: '600px', margin: '0 auto' }}>
-        <h3>Select Your Token</h3>
-        <TokenSelector
-          selectedToken={currentPlayer?.token}
-          disabledTokens={disabledTokens}
-          onSelect={handleTokenSelect}
-        />
-      </div>
       {/* P1.S2.T8: ConnectionError on action failure */}
       {lastError && <ConnectionError onRetry={() => dispatch({ type: 'CLEAR_ERROR' })} />}
       {/* P1.S2.T7: ReconnectionOverlay on socket disconnect */}

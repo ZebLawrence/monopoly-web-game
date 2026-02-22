@@ -47,7 +47,7 @@
   .gameLayout {
     flex-direction: column;
     position: relative;
-    max-height: 50vh;
+    max-height: 60vh;
   }
 
   .boardSection {

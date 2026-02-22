@@ -8,7 +8,7 @@ import { BuyPropertyModal } from './BuyPropertyModal';
 import { SpaceNotification } from './SpaceNotification';
 import { TurnStateLabel } from './TurnStateLabel';
 import { YourTurnBanner } from './YourTurnBanner';
-import { ActivityFeed } from './ActivityFeed';
+import { formatEventMessage, EVENT_ICONS, formatTime } from './ActivityFeed';
 import { CardDrawModal } from '../cards/CardDrawModal';
 import { JailStatusIndicator } from '../jail/JailStatusIndicator';
 import { JailOptionsPanel } from '../jail/JailOptionsPanel';
@@ -19,8 +19,6 @@ export interface GameplayControllerProps {
   gameState: GameState;
   localPlayerId: string | null;
   emitAction: (action: GameAction) => Promise<{ ok: boolean; error?: string }>;
-  soundMuted?: boolean;
-  onToggleSound?: () => void;
   showAssetManagement?: boolean;
   onOpenBuild?: () => void;
   onOpenMortgage?: () => void;
@@ -31,8 +29,6 @@ export function GameplayController({
   gameState,
   localPlayerId,
   emitAction,
-  soundMuted,
-  onToggleSound,
   showAssetManagement,
   onOpenBuild,
   onOpenMortgage,
@@ -41,7 +37,6 @@ export function GameplayController({
   const [cardDismissed, setCardDismissed] = useState(false);
   const [buyDismissed, setBuyDismissed] = useState(false);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
-  const [feedFilter, setFeedFilter] = useState<'all' | 'mine'>('all');
   const [bankruptcyDismissed, setBankruptcyDismissed] = useState(false);
 
   const activePlayer = gameState.players[gameState.currentPlayerIndex];
@@ -94,19 +89,6 @@ export function GameplayController({
     if (!gameState.pendingBuyDecision) return undefined;
     return gameState.board.find((s) => s.id === gameState.pendingBuyDecision!.spaceId);
   }, [gameState.pendingBuyDecision, gameState.board]);
-
-  // Filter events for feed
-  const filteredEvents = useMemo(() => {
-    if (feedFilter === 'all') return gameState.events;
-    return gameState.events.filter((e) => {
-      const playerId = (e.payload.playerId as string) ?? '';
-      const payerId = (e.payload.payerId as string) ?? '';
-      const receiverId = (e.payload.receiverId as string) ?? '';
-      return (
-        playerId === localPlayerId || payerId === localPlayerId || receiverId === localPlayerId
-      );
-    });
-  }, [gameState.events, feedFilter, localPlayerId]);
 
   // Unique key per dice roll — forces DiceDisplay to remount every roll so animation always plays
   const diceRollKey = useMemo(
@@ -168,6 +150,19 @@ export function GameplayController({
   const showDice = gameState.lastDiceResult != null;
   const showActions = !isSpectator && !isGameFinished;
 
+  // Latest relevant event for the waiting-for-player activity hint
+  const latestActivityEvent = useMemo(() => {
+    if (isMyTurn || isSpectator) return null;
+    const filtered = gameState.events.filter(
+      (e) => e.type !== GameEventType.TurnStarted && e.type !== GameEventType.GameStarted,
+    );
+    return filtered.length > 0 ? filtered[filtered.length - 1] : null;
+  }, [isMyTurn, isSpectator, gameState.events]);
+
+  const latestActivityText = latestActivityEvent
+    ? formatEventMessage(latestActivityEvent, gameState.players)
+    : null;
+
   // Spectator mode
   if (isSpectator) {
     return (
@@ -203,37 +198,6 @@ export function GameplayController({
             isDoubles={gameState.lastDiceResult!.isDoubles}
           />
         )}
-
-        {/* Activity Feed with controls */}
-        <div className={styles.feedControls}>
-          <div className={styles.feedFilterRow}>
-            <button
-              className={`${styles.filterButton} ${feedFilter === 'all' ? styles.filterActive : ''}`}
-              onClick={() => setFeedFilter('all')}
-              data-testid="filter-all"
-            >
-              All Events
-            </button>
-            <button
-              className={`${styles.filterButton} ${feedFilter === 'mine' ? styles.filterActive : ''}`}
-              onClick={() => setFeedFilter('mine')}
-              data-testid="filter-mine"
-            >
-              My Events
-            </button>
-          </div>
-          {onToggleSound && (
-            <button
-              className={styles.soundToggle}
-              onClick={onToggleSound}
-              aria-label={soundMuted ? 'Unmute sounds' : 'Mute sounds'}
-              data-testid="sound-toggle"
-            >
-              {soundMuted ? '\u{1F507}' : '\u{1F50A}'}
-            </button>
-          )}
-        </div>
-        <ActivityFeed events={filteredEvents} players={gameState.players} />
       </div>
     );
   }
@@ -256,6 +220,7 @@ export function GameplayController({
           turnState={gameState.turnState}
           isCurrentPlayersTurn={isMyTurn}
           isInJail={isInJail}
+          waitingForName={!isMyTurn ? activePlayer?.name : undefined}
         />
         {/* Active player indicator */}
         <div
@@ -266,6 +231,19 @@ export function GameplayController({
           {isMyTurn && ' (You)'}
         </div>
       </div>
+
+      {/* Latest activity while waiting for another player */}
+      {latestActivityEvent && latestActivityText && (
+        <div className={styles.waitingActivity} data-testid="waiting-activity">
+          <span className={styles.waitingActivityIcon} aria-hidden="true">
+            {EVENT_ICONS[latestActivityEvent.type] ?? '⚪'}
+          </span>
+          <span className={styles.waitingActivityMessage}>{latestActivityText}</span>
+          <span className={styles.waitingActivityTime}>
+            {formatTime(latestActivityEvent.timestamp)}
+          </span>
+        </div>
+      )}
 
       {/* Jail status */}
       {localPlayer && <JailStatusIndicator player={localPlayer} />}
@@ -348,37 +326,6 @@ export function GameplayController({
           )}
         </div>
       )}
-
-      {/* Activity Feed with filter controls */}
-      <div className={styles.feedControls}>
-        <div className={styles.feedFilterRow}>
-          <button
-            className={`${styles.filterButton} ${feedFilter === 'all' ? styles.filterActive : ''}`}
-            onClick={() => setFeedFilter('all')}
-            data-testid="filter-all"
-          >
-            All Events
-          </button>
-          <button
-            className={`${styles.filterButton} ${feedFilter === 'mine' ? styles.filterActive : ''}`}
-            onClick={() => setFeedFilter('mine')}
-            data-testid="filter-mine"
-          >
-            My Events
-          </button>
-        </div>
-        {onToggleSound && (
-          <button
-            className={styles.soundToggle}
-            onClick={onToggleSound}
-            aria-label={soundMuted ? 'Unmute sounds' : 'Mute sounds'}
-            data-testid="sound-toggle"
-          >
-            {soundMuted ? '\u{1F507}' : '\u{1F50A}'}
-          </button>
-        )}
-      </div>
-      <ActivityFeed events={filteredEvents} players={gameState.players} />
 
       {/* Buy Property Modal */}
       {showBuyModal && localPlayer && (
