@@ -1,149 +1,74 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+/**
+ * useSoundEffects — backward-compatible adapter over the new SoundEngine system.
+ *
+ * Existing code that calls `useSoundEffects()` continues to work unchanged.
+ * New code should use `useSoundEngine()` from '@/sounds' directly for full control.
+ *
+ * @deprecated Use `useSoundEngine` from `src/sounds` for new code.
+ */
+
+import { useCallback } from 'react';
 import type { GameEvent } from '@monopoly/shared';
 import { GameEventType } from '@monopoly/shared';
+import { useSoundEngineSafe } from '../sounds/SoundContext';
+import { SoundEvent } from '../sounds/types';
 
-type SoundType = 'dice' | 'cash' | 'card' | 'notification' | 'victory' | 'bankruptcy';
-
-// Audio context-based sound generation (no external files needed)
-class SoundManager {
-  private audioContext: AudioContext | null = null;
-  private muted = false;
-
-  private getContext(): AudioContext {
-    if (!this.audioContext) {
-      this.audioContext = new AudioContext();
-    }
-    return this.audioContext;
-  }
-
-  setMuted(muted: boolean) {
-    this.muted = muted;
-  }
-
-  isMuted(): boolean {
-    return this.muted;
-  }
-
-  play(type: SoundType) {
-    if (this.muted) return;
-
-    try {
-      const ctx = this.getContext();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
-
-      switch (type) {
-        case 'dice':
-          oscillator.type = 'square';
-          oscillator.frequency.setValueAtTime(400, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(600, ctx.currentTime + 0.05);
-          oscillator.frequency.setValueAtTime(500, ctx.currentTime + 0.1);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.2);
-          break;
-
-        case 'cash':
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(1200, ctx.currentTime + 0.1);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.25);
-          break;
-
-        case 'card':
-          oscillator.type = 'triangle';
-          oscillator.frequency.setValueAtTime(600, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(900, ctx.currentTime + 0.08);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.15);
-          break;
-
-        case 'notification':
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(523, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
-          oscillator.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.35);
-          break;
-
-        case 'victory':
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(523, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(659, ctx.currentTime + 0.15);
-          oscillator.frequency.setValueAtTime(784, ctx.currentTime + 0.3);
-          oscillator.frequency.setValueAtTime(1047, ctx.currentTime + 0.45);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.7);
-          break;
-
-        case 'bankruptcy':
-          oscillator.type = 'sawtooth';
-          oscillator.frequency.setValueAtTime(400, ctx.currentTime);
-          oscillator.frequency.setValueAtTime(200, ctx.currentTime + 0.3);
-          gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-          oscillator.start(ctx.currentTime);
-          oscillator.stop(ctx.currentTime + 0.5);
-          break;
-      }
-    } catch {
-      // AudioContext may not be available in all environments
-    }
-  }
-}
-
-const EVENT_SOUNDS: Partial<Record<GameEventType, SoundType>> = {
-  [GameEventType.DiceRolled]: 'dice',
-  [GameEventType.PropertyPurchased]: 'cash',
-  [GameEventType.RentPaid]: 'cash',
-  [GameEventType.CardDrawn]: 'card',
-  [GameEventType.PlayerBankrupt]: 'bankruptcy',
-  [GameEventType.GameEnded]: 'victory',
-  [GameEventType.TradeCompleted]: 'notification',
-  [GameEventType.PassedGo]: 'cash',
+// Map from legacy GameEventType to the new SoundEvent enum
+const EVENT_TO_SOUND: Partial<Record<GameEventType, SoundEvent>> = {
+  [GameEventType.DiceRolled]: SoundEvent.DiceRoll,
+  [GameEventType.PropertyPurchased]: SoundEvent.BuyProperty,
+  [GameEventType.RentPaid]: SoundEvent.PayRent,
+  [GameEventType.CardDrawn]: SoundEvent.CardDraw,
+  [GameEventType.PlayerBankrupt]: SoundEvent.Bankruptcy,
+  [GameEventType.GameEnded]: SoundEvent.Victory,
+  [GameEventType.TradeCompleted]: SoundEvent.TradeComplete,
+  [GameEventType.PassedGo]: SoundEvent.PassGo,
+  [GameEventType.AuctionStarted]: SoundEvent.AuctionStart,
+  [GameEventType.AuctionBid]: SoundEvent.AuctionBid,
+  [GameEventType.AuctionEnded]: SoundEvent.AuctionWin,
+  [GameEventType.PlayerJailed]: SoundEvent.GoToJail,
+  [GameEventType.PlayerFreed]: SoundEvent.GetOutOfJail,
+  [GameEventType.HouseBuilt]: SoundEvent.BuildHouse,
+  [GameEventType.HotelBuilt]: SoundEvent.BuildHotel,
+  [GameEventType.PropertyMortgaged]: SoundEvent.Mortgage,
+  [GameEventType.PropertyUnmortgaged]: SoundEvent.Unmortgage,
+  [GameEventType.TaxPaid]: SoundEvent.TaxPaid,
+  [GameEventType.TurnStarted]: SoundEvent.YourTurn,
 };
 
 export function useSoundEffects() {
-  const [muted, setMuted] = useState(false);
-  const managerRef = useRef<SoundManager | null>(null);
-
-  useEffect(() => {
-    managerRef.current = new SoundManager();
-    return () => {
-      managerRef.current = null;
-    };
-  }, []);
+  const engine = useSoundEngineSafe();
 
   const toggleMute = useCallback(() => {
-    setMuted((prev) => {
-      const newVal = !prev;
-      managerRef.current?.setMuted(newVal);
-      return newVal;
-    });
-  }, []);
+    engine?.toggleMute();
+  }, [engine]);
 
-  const playForEvent = useCallback((event: GameEvent) => {
-    const soundType = EVENT_SOUNDS[event.type];
-    if (soundType) {
-      managerRef.current?.play(soundType);
-    }
-  }, []);
+  /** Play a sound corresponding to a raw game event. */
+  const playForEvent = useCallback(
+    (event: GameEvent) => {
+      if (!engine) return;
+      const soundEvent = EVENT_TO_SOUND[event.type];
+      if (soundEvent) {
+        engine.play(soundEvent);
+      }
+    },
+    [engine],
+  );
 
-  const playSound = useCallback((type: SoundType) => {
-    managerRef.current?.play(type);
-  }, []);
+  /** Play a sound by SoundEvent key. */
+  const playSound = useCallback(
+    (soundEvent: SoundEvent) => {
+      engine?.play(soundEvent);
+    },
+    [engine],
+  );
 
-  return { muted, toggleMute, playForEvent, playSound };
+  return {
+    muted: engine?.muted ?? false,
+    toggleMute,
+    playForEvent,
+    playSound,
+  };
 }

@@ -147,3 +147,6 @@ test-results/
 
 # Claude settings
 .claude/settings.local.json
+
+# Private ops reference (contains links, IPs, SSH details)
+OPS.md

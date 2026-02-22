@@ -13,6 +13,8 @@
   "dependencies": {
     "@monopoly/shared": "workspace:*",
     "@sentry/nextjs": "^10.39.0",
+    "@types/howler": "^2.2.12",
+    "howler": "^2.2.4",
     "next": "^15.1.0",
     "pixi.js": "^8.16.0",
     "react": "^19.0.0",

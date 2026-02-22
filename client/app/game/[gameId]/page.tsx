@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { TurnState, GameEventType, SpaceType } from '@monopoly/shared';
 import type { Property, TradeOfferPayload, TradeOffer } from '@monopoly/shared';
 import { GameStateProvider, useGameState } from '../../../src/hooks/useGameState';
+import { SoundProvider, GameSoundWatcher } from '../../../src/sounds';
 import { LoadingSkeleton } from '../../../src/components/ui/LoadingSkeleton';
 import { ConnectionError } from '../../../src/components/connection/ConnectionError';
 import { GameLayout } from '../../../src/components/dashboard/GameLayout';
@@ -27,11 +28,15 @@ export default function GamePage({ params }: { params: Promise<{ gameId: string 
 
   return (
     <ToastProvider>
-      <GameStateProvider>
-        <Suspense fallback={<LoadingSkeleton />}>
-          <GameContent gameId={gameId} />
-        </Suspense>
-      </GameStateProvider>
+      <SoundProvider>
+        <GameStateProvider>
+          <Suspense fallback={<LoadingSkeleton />}>
+            <GameContent gameId={gameId} />
+          </Suspense>
+          {/* Invisible — watches game events and plays sounds */}
+          <GameSoundWatcher />
+        </GameStateProvider>
+      </SoundProvider>
     </ToastProvider>
   );
 }
