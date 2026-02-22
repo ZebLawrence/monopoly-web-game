@@ -90,10 +90,10 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
   const [isScrolledUp, setIsScrolledUp] = useState(false);
   const lastEventCountRef = useRef(events.length);
 
-  // Auto-scroll when not scrolled up
+  // Auto-scroll to top when not scrolled away (newest items are at the top)
   useEffect(() => {
     if (events.length > lastEventCountRef.current && !isScrolledUp && feedRef.current) {
-      feedRef.current.scrollTop = feedRef.current.scrollHeight;
+      feedRef.current.scrollTop = 0;
     }
     lastEventCountRef.current = events.length;
   }, [events.length, isScrolledUp]);
@@ -101,8 +101,8 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
   const handleScroll = useCallback(() => {
     const el = feedRef.current;
     if (!el) return;
-    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
-    setIsScrolledUp(!isAtBottom);
+    const isAtTop = el.scrollTop < 20;
+    setIsScrolledUp(!isAtTop);
   }, []);
 
   // Latest event for ARIA live region label (avoids duplicate text nodes)
@@ -125,15 +125,18 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
         tabIndex={0}
       >
         {events.length === 0 && <div className={styles.empty}>No events yet</div>}
-        {events.slice(-100).map((event) => (
-          <div key={event.id} className={styles.event} data-testid="activity-feed-event">
-            <span className={styles.eventIcon} aria-hidden="true">
-              {EVENT_ICONS[event.type] ?? '\u26AA'}
-            </span>
-            <span className={styles.eventMessage}>{formatEventMessage(event, players)}</span>
-            <span className={styles.eventTime}>{formatTime(event.timestamp)}</span>
-          </div>
-        ))}
+        {events
+          .slice(-100)
+          .reverse()
+          .map((event) => (
+            <div key={event.id} className={styles.event} data-testid="activity-feed-event">
+              <span className={styles.eventIcon} aria-hidden="true">
+                {EVENT_ICONS[event.type] ?? '\u26AA'}
+              </span>
+              <span className={styles.eventMessage}>{formatEventMessage(event, players)}</span>
+              <span className={styles.eventTime}>{formatTime(event.timestamp)}</span>
+            </div>
+          ))}
       </div>
       {/* ARIA live region — uses aria-label to avoid duplicate text content in DOM */}
       <div

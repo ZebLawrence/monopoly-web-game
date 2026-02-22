@@ -33,6 +33,14 @@ const TOKEN_COLORS: Record<string, string> = {
   wheelbarrow: '#2e7d32',
   battleship: '#37474f',
 };
+/** Different train emoji for each of the four railroads (keyed by board position). */
+const RAILROAD_ICONS: Record<number, string> = {
+  5: '\u{1F682}', // 🚂 Reading Railroad      — steam locomotive
+  15: '\u{1F686}', // 🚆 Pennsylvania Railroad  — intercity train
+  25: '\u{1F685}', // 🚅 B&O Railroad           — bullet train
+  35: '\u{1F688}', // 🚈 Short Line Railroad    — light rail
+};
+
 const TOKEN_ICONS: Record<string, string> = {
   scottieDog: '\u{1F415}',
   topHat: '\u{1F3A9}',
@@ -521,6 +529,9 @@ function drawPropertySpace(
   const cx = pos.x + pos.width / 2;
   const cy = pos.y + pos.height / 2;
 
+  const railroadIcon =
+    space.type === SpaceType.Railroad ? (RAILROAD_ICONS[space.position] ?? '\u{1F682}') : null;
+
   // Name
   const name = truncateName(space.name, isVertical ? pos.height : pos.width, fontSize);
   const nameOffset = pos.isCorner ? 0 : isVertical ? 0 : pos.height * 0.15;
@@ -529,17 +540,41 @@ function drawPropertySpace(
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(pos.side === 'left' ? Math.PI / 2 : -Math.PI / 2);
-    ctx.fillText(name, 0, -fontSize * 0.6);
-    if (space.cost) {
-      ctx.font = `bold ${fontSize * 0.85}px sans-serif`;
-      ctx.fillText(`$${space.cost}`, 0, fontSize * 0.8);
+    if (railroadIcon) {
+      // Icon above, name & cost shifted down
+      ctx.font = `${fontSize * 1.9}px sans-serif`;
+      ctx.fillText(railroadIcon, 0, -fontSize * 1.5);
+      ctx.font = `${fontSize}px sans-serif`;
+      ctx.fillText(name, 0, -fontSize * 0.05);
+      if (space.cost) {
+        ctx.font = `bold ${fontSize * 0.85}px sans-serif`;
+        ctx.fillText(`$${space.cost}`, 0, fontSize * 1.1);
+      }
+    } else {
+      ctx.fillText(name, 0, -fontSize * 0.6);
+      if (space.cost) {
+        ctx.font = `bold ${fontSize * 0.85}px sans-serif`;
+        ctx.fillText(`$${space.cost}`, 0, fontSize * 0.8);
+      }
     }
     ctx.restore();
   } else {
-    ctx.fillText(name, cx, cy + nameOffset);
-    if (space.cost) {
-      ctx.font = `bold ${fontSize * 0.85}px sans-serif`;
-      ctx.fillText(`$${space.cost}`, cx, cy + nameOffset + fontSize * 1.2);
+    if (railroadIcon) {
+      // Icon above, name & cost shifted down
+      ctx.font = `${fontSize * 1.9}px sans-serif`;
+      ctx.fillText(railroadIcon, cx, cy - fontSize * 0.9);
+      ctx.font = `${fontSize}px sans-serif`;
+      ctx.fillText(name, cx, cy + fontSize * 0.7);
+      if (space.cost) {
+        ctx.font = `bold ${fontSize * 0.85}px sans-serif`;
+        ctx.fillText(`$${space.cost}`, cx, cy + fontSize * 1.9);
+      }
+    } else {
+      ctx.fillText(name, cx, cy + nameOffset);
+      if (space.cost) {
+        ctx.font = `bold ${fontSize * 0.85}px sans-serif`;
+        ctx.fillText(`$${space.cost}`, cx, cy + nameOffset + fontSize * 1.2);
+      }
     }
   }
 }
@@ -585,23 +620,47 @@ function drawToken(
   y: number,
   boardSize: number,
 ) {
-  const tokenSize = boardSize * 0.02;
+  const tokenSize = boardSize * 0.028; // ~40% larger than before
   const icon = TOKEN_ICONS[player.token] || '\u26AB';
+  const tokenColor = TOKEN_COLORS[player.token] || '#333';
 
   ctx.save();
-  // Token background circle
+
+  // Background circle
   ctx.beginPath();
-  ctx.arc(x, y, tokenSize * 1.2, 0, Math.PI * 2);
-  ctx.fillStyle = TOKEN_COLORS[player.token] || '#333';
-  ctx.globalAlpha = 0.3;
+  ctx.arc(x, y, tokenSize * 1.3, 0, Math.PI * 2);
+  ctx.fillStyle = tokenColor;
+  ctx.globalAlpha = 0.45;
   ctx.fill();
   ctx.globalAlpha = 1;
 
-  // Token icon
-  ctx.font = `${tokenSize * 1.5}px sans-serif`;
+  // Ring border on every token
+  ctx.beginPath();
+  ctx.arc(x, y, tokenSize * 1.55, 0, Math.PI * 2);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = tokenSize * 0.35;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x, y, tokenSize * 1.55, 0, Math.PI * 2);
+  ctx.strokeStyle = tokenColor;
+  ctx.lineWidth = tokenSize * 0.2;
+  ctx.stroke();
+
+  // Token icon with text outline for legibility
+  ctx.font = `${tokenSize * 1.8}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,0.7)';
+  ctx.shadowBlur = tokenSize * 0.8;
+  ctx.shadowOffsetX = tokenSize * 0.15;
+  ctx.shadowOffsetY = tokenSize * 0.15;
   ctx.fillText(icon, x, y);
+  // Second pass with reduced shadow for a crisp outline effect
+  ctx.shadowBlur = tokenSize * 0.3;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillText(icon, x, y);
+
   ctx.restore();
 }
 

@@ -22,6 +22,7 @@
   max-height: 200px;
   overflow-y: auto;
   scroll-behavior: smooth;
+  padding-bottom: 56px;
 }
 
 .empty {
